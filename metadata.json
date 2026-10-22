@@ -1,0 +1,6 @@
+{
+  "name": "An Nhiên Spa - Hệ Thống Đặt Lịch & Quản Lý Spa",
+  "description": "Website spa An Nhiên hoàn chỉnh: đặt lịch dịch vụ thông minh, cửa hàng mỹ phẩm dưỡng da, chính sách hoàn hủy cọc minh bạch, ưu đãi và phân hệ quản trị toàn diện.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

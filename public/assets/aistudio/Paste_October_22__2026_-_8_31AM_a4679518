@@ -1,0 +1,885 @@
+# XÂY DỰNG WEBSITE SPA AN NHIÊN — ĐỒ ÁN HOÀN CHỈNH
+
+Bạn là một chuyên gia phát triển website full-stack, thiết kế UI/UX và xây dựng hệ thống quản lý spa. Hãy xây dựng một website spa hoàn chỉnh mang tên **AN NHIÊN**, phục vụ mục đích đồ án học tập, có thể chạy thử trực tiếp, trình diễn trước giảng viên và kiểm tra được các chức năng thực tế trong phạm vi mô phỏng.
+
+Nếu dự án đã tồn tại, hãy kiểm tra cấu trúc, giữ lại những phần đang hoạt động tốt và hoàn thiện dự án hiện có. Nếu bắt đầu từ đầu, hãy xây dựng toàn bộ ứng dụng theo yêu cầu dưới đây.
+
+Không chỉ tạo giao diện minh họa hoặc các trang tĩnh. Hãy triển khai các trang, chức năng, thao tác, dữ liệu và luồng nghiệp vụ có thể kiểm tra được.
+
+---
+
+## I. MỤC TIÊU VÀ PHẠM VI DỰ ÁN
+
+Tên website: **An Nhiên Spa**
+
+Lĩnh vực: Spa chăm sóc da, massage thư giãn, chăm sóc cơ thể và bán sản phẩm chăm sóc sắc đẹp.
+
+Đối tượng sử dụng:
+1. Khách hàng truy cập website để tìm hiểu dịch vụ, đặt lịch, mua sản phẩm và quản lý tài khoản.
+2. Quản trị viên đăng nhập vào khu vực quản trị để quản lý lịch hẹn, dịch vụ, sản phẩm, đơn hàng, khách hàng và chương trình ưu đãi.
+
+Yêu cầu cốt lõi:
+- Có hai khu vực riêng biệt: **website người dùng** và **website quản trị**.
+- Hai khu vực sử dụng chung nguồn dữ liệu để các thay đổi được phản ánh nhất quán.
+- Có đăng nhập, đăng xuất, phân quyền theo vai trò và dữ liệu mẫu để giảng viên dễ kiểm tra.
+- Tất cả chức năng chính phải có thể thao tác được.
+- Thanh toán, hoàn tiền, đặt hàng và các giao dịch tài chính chỉ là mô phỏng; tuyệt đối không yêu cầu người dùng chuyển tiền thật.
+- Không tạo các nút chỉ để trang trí. Mỗi nút, biểu mẫu, bộ lọc và thao tác phải có hành vi rõ ràng.
+- Ưu tiên sự ổn định, tính hoàn thiện, trải nghiệm người dùng và khả năng trình diễn trong buổi chấm đồ án.
+
+## II. CÔNG NGHỆ VÀ CẤU TRÚC
+
+Ưu tiên sử dụng:
+- React và TypeScript.
+- Vite nếu phù hợp với môi trường hiện có.
+- React Router để điều hướng giữa các trang.
+- Tailwind CSS hoặc hệ thống CSS nhất quán để xây dựng giao diện.
+- Lucide Icons hoặc bộ biểu tượng tương đương.
+- localStorage để lưu dữ liệu demo nếu dự án không có backend sẵn có.
+
+Nếu dự án đã có công nghệ hoặc cơ sở dữ liệu đang hoạt động, hãy tận dụng hệ thống hiện có thay vì thay đổi không cần thiết.
+
+Tổ chức mã nguồn rõ ràng, dễ bảo trì:
+- Components: thành phần giao diện dùng chung.
+- Pages: các trang người dùng và quản trị.
+- Layouts: bố cục dành riêng cho khách hàng và quản trị viên.
+- Services: các hàm xử lý dữ liệu.
+- Types: định nghĩa kiểu dữ liệu TypeScript.
+- Utils: các hàm định dạng ngày giờ, tiền tệ, kiểm tra dữ liệu và nghiệp vụ.
+- Data: dữ liệu mẫu ban đầu.
+
+Tách biệt logic xử lý dữ liệu khỏi giao diện. Không viết toàn bộ ứng dụng trong một component lớn.
+
+Nếu dùng localStorage, hãy xây dựng một lớp hoặc nhóm hàm truy cập dữ liệu thống nhất để cả trang người dùng và trang quản trị đọc, ghi cùng dữ liệu. Xử lý lỗi dữ liệu và trường hợp localStorage chưa có dữ liệu.
+
+Đây là phiên bản demo phục vụ học tập. Không giả vờ rằng localStorage là cơ sở dữ liệu trực tuyến hoặc cơ chế xác thực an toàn. Ghi rõ các giới hạn này trong hướng dẫn sử dụng. Không lưu mật khẩu thật hoặc thông tin thanh toán nhạy cảm.
+
+## III. ĐỊNH HƯỚNG THIẾT KẾ UI/UX
+
+### 1. Phong cách tổng thể
+
+Thiết kế theo phong cách spa thiên nhiên, tinh tế, thư giãn, cao cấp nhưng gần gũi.
+
+Bảng màu:
+- Xanh sage nhạt làm màu nhận diện chính.
+- Xanh olive trầm làm màu nhấn.
+- Trắng ngà, kem và be nhạt làm màu nền.
+- Màu chữ xanh rêu đậm hoặc nâu xám để dễ đọc.
+
+Sử dụng hình ảnh phù hợp với spa: cây xanh, lá, khăn mềm, đá massage, tinh dầu, không gian thư giãn và chăm sóc da.
+
+Phong cách:
+- Bố cục thoáng, cân đối, có khoảng trắng.
+- Typography thanh lịch, dễ đọc, phân cấp rõ ràng.
+- Thẻ dịch vụ và sản phẩm đồng nhất.
+- Bo góc vừa phải, bóng đổ nhẹ, hiệu ứng chuyển động tinh tế.
+- Không sử dụng quá nhiều màu sắc, hiệu ứng hoặc gradient gây rối mắt.
+- Không dùng emoji thay thế cho toàn bộ biểu tượng giao diện.
+- Nội dung bằng tiếng Việt tự nhiên, đúng chính tả, thống nhất cách gọi.
+- Hiển thị giá bằng VNĐ, ví dụ: 300.000đ.
+- Định dạng ngày giờ phù hợp với người dùng Việt Nam.
+
+### 2. Khả năng đáp ứng
+
+Website phải hoạt động tốt trên:
+- Máy tính.
+- Máy tính bảng.
+- Điện thoại.
+
+Trên máy tính, trình bày nội dung rộng rãi. Trên điện thoại, menu, biểu mẫu, thẻ và bảng dữ liệu phải được tối ưu, không tràn màn hình.
+
+Có trạng thái tải, trạng thái rỗng, thông báo thành công, thông báo lỗi và xác nhận trước những thao tác quan trọng.
+
+### 3. Điều hướng
+
+Website người dùng có thanh điều hướng chính với logo An Nhiên và các liên kết cần thiết.
+
+Tạo nút menu hamburger ở góc trên bên trái. Khi bấm vào, mở một menu dạng drawer hoặc sidebar có hiệu ứng mượt, chứa:
+- Trang chủ.
+- Giới thiệu.
+- Dịch vụ.
+- Đặt lịch.
+- Sản phẩm.
+- Ưu đãi và mini game.
+- Liên hệ.
+- Câu hỏi thường gặp.
+- Tài khoản của tôi.
+- Lịch hẹn của tôi.
+- Đăng nhập hoặc đăng xuất tùy trạng thái tài khoản.
+
+Có nút đóng menu, đóng khi nhấn ra ngoài nếu phù hợp và hỗ trợ thao tác trên thiết bị di động.
+
+Tạo footer đầy đủ với thông tin spa, giờ hoạt động, điều hướng nhanh, thông tin liên hệ và chính sách đặt lịch.
+
+---
+
+## IV. TRANG NGƯỜI DÙNG
+
+### 1. Trang chủ — `/`
+
+Xây dựng trang chủ chỉn chu, có sức thuyết phục và tạo cảm giác thư giãn.
+
+Các khu vực:
+1. Header có logo, menu hamburger và nút đặt lịch.
+2. Hero section với hình ảnh spa đẹp, tiêu đề nổi bật và lời giới thiệu ngắn.
+3. Thông điệp thương hiệu, ví dụ: “An yên trong từng chạm”.
+4. Giới thiệu ngắn về An Nhiên Spa.
+5. Các dịch vụ nổi bật.
+6. Lý do khách hàng nên chọn An Nhiên.
+7. Quy trình trải nghiệm dịch vụ.
+8. Ưu đãi đang áp dụng.
+9. Sản phẩm được yêu thích.
+10. Đánh giá khách hàng mẫu, ghi rõ là nội dung minh họa nếu chưa có đánh giá thật.
+11. Lời kêu gọi đặt lịch.
+12. Footer.
+
+Các nút “Đặt lịch ngay”, “Xem dịch vụ”, “Khám phá sản phẩm” phải dẫn đến đúng trang.
+
+### 2. Trang giới thiệu — `/about`
+
+Hiển thị:
+- Câu chuyện thương hiệu An Nhiên.
+- Sứ mệnh và giá trị cốt lõi.
+- Triết lý chăm sóc khách hàng.
+- Không gian spa.
+- Quy trình phục vụ.
+- Đội ngũ nhân viên mẫu.
+- Hình ảnh minh họa phù hợp.
+
+Không đưa ra những tuyên bố y khoa hoặc cam kết điều trị thiếu căn cứ.
+
+### 3. Trang dịch vụ — `/services`
+
+Hiển thị danh sách dịch vụ dưới dạng thẻ đẹp, nhất quán.
+
+Mỗi dịch vụ có:
+- Ảnh đại diện.
+- Tên dịch vụ.
+- Mô tả.
+- Giá.
+- Thời lượng.
+- Nhóm dịch vụ.
+- Trạng thái đang cung cấp hoặc tạm ngừng.
+
+Tạo các nhóm mẫu:
+- Chăm sóc da mặt.
+- Massage thư giãn.
+- Chăm sóc cơ thể.
+- Liệu trình dưỡng da.
+- Chăm sóc chuyên sâu.
+
+Có chức năng:
+- Tìm kiếm theo tên.
+- Lọc theo danh mục.
+- Sắp xếp theo giá.
+- Xem chi tiết dịch vụ.
+- Đặt lịch cho dịch vụ đang hoạt động.
+
+Dữ liệu dịch vụ phải lấy từ nguồn dữ liệu dùng chung, không hard-code riêng trong giao diện.
+
+### 4. Trang chi tiết dịch vụ — `/services/:id`
+
+Hiển thị đầy đủ thông tin dịch vụ, hình ảnh, giá, thời lượng, quy trình cơ bản và lưu ý cần thiết.
+
+Có nút đặt lịch. Khi bấm, chuyển sang trang đặt lịch và tự động chọn dịch vụ tương ứng.
+
+Nếu dịch vụ không tồn tại hoặc đã bị ngừng cung cấp, hiển thị thông báo phù hợp.
+
+### 5. Trang đặt lịch — `/booking`
+
+Đây là một trong những chức năng quan trọng nhất.
+
+Thiết kế quy trình đặt lịch theo từng bước:
+
+**Bước 1: Chọn dịch vụ**
+- Hiển thị dịch vụ đang hoạt động.
+- Cho phép chọn một hoặc nhiều dịch vụ nếu hệ thống hỗ trợ.
+- Tính tổng tiền chính xác.
+
+**Bước 2: Chọn ngày và giờ**
+- Chọn ngày trên lịch.
+- Chọn khung giờ còn khả dụng.
+- Không cho chọn ngày trong quá khứ.
+- Không cho đặt lịch vào giờ ngoài giờ hoạt động của spa.
+- Nếu lịch hẹn trùng khung giờ và nhân sự không thể phục vụ đồng thời, không cho đặt trùng.
+- Nếu chưa triển khai lịch nhân viên thực tế, hãy mô phỏng số lượng chỗ còn trống và kiểm tra trùng lịch nhất quán.
+
+**Bước 3: Nhập thông tin**
+- Họ tên.
+- Số điện thoại.
+- Email nếu cần.
+- Ghi chú hoặc yêu cầu đặc biệt.
+- Thông tin khách hàng được tự điền nếu đã đăng nhập.
+
+**Bước 4: Xác nhận thông tin**
+Hiển thị:
+- Dịch vụ.
+- Ngày giờ.
+- Tổng giá dịch vụ.
+- Số tiền đặt cọc.
+- Số tiền còn lại dự kiến phải trả.
+- Chính sách hủy và đổi lịch.
+
+**Bước 5: Thanh toán cọc mô phỏng**
+- Dùng tỷ lệ đặt cọc cấu hình được, mặc định 30% tổng giá trị dịch vụ.
+- Hiển thị rõ đây là thanh toán thử nghiệm, không phải giao dịch thật.
+- Có nút “Mô phỏng thanh toán thành công”.
+- Có nút “Mô phỏng thanh toán thất bại”.
+- Chỉ xác nhận đặt lịch sau khi mô phỏng thanh toán thành công.
+- Nếu thanh toán thất bại, không ghi nhận khoản cọc đã thanh toán; cho phép thử lại hoặc quay lại.
+- Tránh tạo nhiều lịch trùng khi người dùng bấm nút nhiều lần.
+
+Sau khi thành công, tạo mã đặt lịch duy nhất và hiển thị trang xác nhận gồm mã lịch, dịch vụ, thời gian, số tiền cọc và trạng thái.
+
+Lưu lịch hẹn vào nguồn dữ liệu chung để quản trị viên có thể nhìn thấy ngay.
+
+### 6. Chính sách hủy và đổi lịch
+
+Triển khai đúng các quy tắc sau và hiển thị chúng trước khi khách xác nhận đặt lịch.
+
+**Hủy lịch trước ít nhất 24 giờ:**
+- Khách được hoàn 100% tiền cọc trong phạm vi mô phỏng.
+- Cập nhật trạng thái lịch thành đã hủy.
+- Ghi lại số tiền hoàn mô phỏng và thời điểm hủy.
+
+**Hủy lịch khi còn dưới 24 giờ:**
+- Khách bị giữ lại 50% số tiền cọc.
+- Khách được hoàn lại 50% số tiền cọc.
+- Hiển thị rõ số tiền được hoàn và số tiền bị giữ lại.
+- Cập nhật trạng thái lịch và lưu thông tin hoàn tiền mô phỏng.
+
+**Đổi lịch:**
+- Chỉ cho phép đổi lịch khi thời điểm yêu cầu đổi còn ít nhất 24 giờ trước giờ hẹn ban đầu.
+- Không cho đổi sang thời gian trong quá khứ hoặc khung giờ không khả dụng.
+- Khi đổi thành công, cập nhật lịch hẹn hiện tại, giữ nguyên mã lịch và thông tin đặt cọc.
+- Lưu ngày giờ cũ và mới để có thể kiểm tra lịch sử thay đổi.
+- Nếu còn dưới 24 giờ, thông báo lịch không đủ điều kiện đổi và hướng dẫn khách liên hệ spa.
+
+Tính chính xác khoảng thời gian bằng ngày giờ, không chỉ so sánh ngày trên lịch. Dùng cùng một hàm nghiệp vụ cho giao diện khách hàng và trang quản trị.
+
+Nếu khách chưa đăng nhập, yêu cầu đăng nhập trước khi đặt lịch hoặc xem lịch hẹn cá nhân. Không cho khách xem dữ liệu riêng của người khác.
+
+### 7. Tài khoản khách hàng — `/login`, `/register`, `/account`
+
+Tạo giao diện đăng nhập, đăng ký và tài khoản khách hàng.
+
+Chức năng:
+- Đăng ký tài khoản demo.
+- Đăng nhập.
+- Đăng xuất.
+- Hiển thị thông tin tài khoản.
+- Chỉnh sửa tên, số điện thoại và email.
+- Kiểm tra trường bắt buộc và định dạng dữ liệu.
+- Hiển thị lỗi dễ hiểu.
+- Điều hướng phù hợp sau khi đăng nhập.
+
+Có trạng thái đăng nhập rõ ràng trên giao diện.
+
+Tài khoản demo chỉ phục vụ học tập. Không tuyên bố đây là cơ chế xác thực bảo mật dùng cho website thực tế. Không lưu mật khẩu thật hoặc dữ liệu nhạy cảm.
+
+### 8. Lịch hẹn của tôi — `/my-bookings`
+
+Khách hàng đã đăng nhập có thể:
+- Xem lịch sắp tới.
+- Xem lịch đã hoàn thành.
+- Xem lịch đã hủy.
+- Xem chi tiết từng lịch.
+- Xem mã lịch, dịch vụ, ngày giờ, tổng tiền và tiền cọc.
+- Xem trạng thái đặt lịch và thanh toán.
+- Yêu cầu hủy lịch.
+- Đổi lịch nếu đủ điều kiện.
+- Xem kết quả hoàn tiền mô phỏng.
+- Xem lịch sử đổi lịch.
+
+Mỗi tài khoản chỉ được xem và thao tác trên lịch của chính mình.
+
+### 9. Cửa hàng sản phẩm — `/products`
+
+Xây dựng cửa hàng mỹ phẩm và sản phẩm chăm sóc da.
+
+Mỗi sản phẩm có:
+- Ảnh.
+- Tên.
+- Mô tả.
+- Giá.
+- Danh mục.
+- Số lượng tồn kho.
+- Trạng thái còn hàng hoặc hết hàng.
+
+Có:
+- Tìm kiếm sản phẩm.
+- Lọc theo danh mục.
+- Sắp xếp theo giá.
+- Trang chi tiết sản phẩm.
+- Chọn số lượng.
+- Thêm vào giỏ hàng.
+- Cập nhật hoặc xóa sản phẩm trong giỏ.
+- Tính tổng tiền tự động.
+
+Không cho mua số lượng lớn hơn tồn kho. Nếu sản phẩm bị ngừng bán hoặc hết hàng, cập nhật trạng thái hiển thị.
+
+### 10. Giỏ hàng và đặt hàng — `/cart`, `/checkout`, `/my-orders`
+
+Khách hàng có thể:
+- Xem các sản phẩm đã chọn.
+- Thay đổi số lượng.
+- Xóa sản phẩm.
+- Nhập mã giảm giá hợp lệ.
+- Xem tổng tiền trước và sau giảm giá.
+- Nhập thông tin người nhận và địa chỉ giao hàng.
+- Xác nhận đơn hàng.
+- Mô phỏng thanh toán hoặc chọn phương thức thanh toán khi nhận hàng.
+- Xem mã đơn hàng và trạng thái đơn.
+- Xem lịch sử mua hàng.
+
+Khi tạo đơn thành công:
+- Lưu đơn vào nguồn dữ liệu chung.
+- Cập nhật tồn kho một cách nhất quán.
+- Không cho tồn kho âm.
+- Xóa giỏ hàng sau khi đơn được tạo thành công.
+- Tránh tạo đơn trùng khi bấm xác nhận nhiều lần.
+
+Chỉ sử dụng dữ liệu địa chỉ minh họa trong demo, không yêu cầu thông tin thanh toán nhạy cảm.
+
+### 11. Ưu đãi và mini game — `/promotions`
+
+Tạo trang ưu đãi với thiết kế sinh động nhưng vẫn theo phong cách xanh sage của An Nhiên.
+
+Có:
+- Danh sách chương trình khuyến mãi.
+- Mã giảm giá.
+- Thời gian áp dụng.
+- Điều kiện sử dụng.
+- Nút sao chép mã giảm giá.
+- Vòng quay may mắn.
+- Phần hiển thị kết quả và phần thưởng.
+
+Vòng quay có thể tặng:
+- Giảm 5%.
+- Giảm 10%.
+- Giảm 15%.
+- Giảm 20.000đ.
+- Mã ưu đãi cho sản phẩm.
+- Lượt quay không trúng thưởng.
+
+Kết quả phải được xử lý bằng logic thực tế, không chỉ đổi hình ảnh. Có thể giới hạn số lượt chơi mỗi tài khoản theo ngày trong demo.
+
+Mã giảm giá phải được kiểm tra tính hợp lệ, thời gian áp dụng, điều kiện đơn hàng và giới hạn sử dụng trước khi giảm tiền.
+
+Không cho phép áp dụng nhiều mã trái quy tắc hoặc để tổng tiền âm.
+
+### 12. Liên hệ — `/contact`
+
+Hiển thị:
+- Địa chỉ spa mẫu.
+- Số điện thoại mẫu.
+- Email mẫu.
+- Giờ hoạt động.
+- Kênh liên hệ.
+- Biểu mẫu gửi tin nhắn.
+
+Biểu mẫu cần kiểm tra dữ liệu và thông báo gửi thành công. Nếu chưa có backend gửi email, lưu tin nhắn vào dữ liệu demo và cho quản trị viên xem trong khu vực quản trị.
+
+Không sử dụng thông tin liên hệ cá nhân có thật của người dùng.
+
+### 13. Câu hỏi thường gặp — `/faq`
+
+Tạo các câu hỏi thường gặp về:
+- Cách đặt lịch.
+- Tiền đặt cọc.
+- Chính sách hủy.
+- Chính sách đổi lịch.
+- Hoàn tiền.
+- Cách mua sản phẩm.
+- Mã giảm giá.
+- Vòng quay may mắn.
+- Giờ hoạt động.
+
+Dùng giao diện accordion có thể mở và đóng từng câu trả lời.
+
+---
+
+## V. TRANG QUẢN TRỊ
+
+### 1. Khu vực quản trị riêng — `/admin`
+
+Tạo một layout riêng cho quản trị viên, khác rõ ràng với giao diện khách hàng.
+
+Phong cách chuyên nghiệp, dễ quản lý:
+- Sidebar bên trái.
+- Logo An Nhiên.
+- Các mục điều hướng.
+- Thanh tiêu đề.
+- Thông tin tài khoản quản trị viên.
+- Nút đăng xuất.
+- Khu vực nội dung chính.
+- Bố cục bảng, thẻ thống kê và biểu đồ.
+
+Các mục sidebar:
+1. Tổng quan.
+2. Quản lý lịch hẹn.
+3. Quản lý dịch vụ.
+4. Quản lý sản phẩm.
+5. Quản lý đơn hàng.
+6. Quản lý khách hàng.
+7. Quản lý ưu đãi.
+8. Quản lý tin nhắn liên hệ.
+9. Cài đặt.
+10. Đăng xuất.
+
+Không đưa toàn bộ chức năng quản trị vào trang chủ người dùng.
+
+### 2. Đăng nhập quản trị — `/admin/login`
+
+Tạo trang đăng nhập riêng cho quản trị viên.
+
+Cung cấp tài khoản demo dễ kiểm tra, ví dụ:
+- Email: `admin@annhienspa.demo`
+- Mật khẩu demo: `Admin123!`
+
+Nếu môi trường demo không hỗ trợ tài khoản với định dạng email, hãy sử dụng cơ chế đăng nhập demo tương đương và hướng dẫn rõ cách đăng nhập.
+
+Chỉ cho tài khoản có vai trò quản trị viên truy cập các trang quản trị.
+
+Nếu khách hàng cố truy cập `/admin`, chuyển họ đến trang đăng nhập phù hợp hoặc hiển thị trang không có quyền truy cập.
+
+Không dựa vào việc ẩn nút trên giao diện để coi là đã bảo vệ quyền truy cập. Tạo kiểm tra vai trò ở cấp điều hướng và lớp logic thao tác dữ liệu trong phạm vi demo.
+
+Nêu rõ đây là phân quyền mô phỏng phía client, không đủ an toàn cho triển khai thương mại.
+
+### 3. Dashboard tổng quan — `/admin`
+
+Hiển thị các thẻ thống kê:
+- Tổng số lịch hẹn.
+- Lịch hẹn hôm nay.
+- Lịch chờ xác nhận.
+- Lịch đã hoàn thành.
+- Tổng số khách hàng.
+- Tổng số dịch vụ đang hoạt động.
+- Tổng số sản phẩm.
+- Số đơn hàng.
+- Tổng giá trị đơn hàng mô phỏng.
+- Tổng tiền cọc đã ghi nhận trong demo.
+
+Có biểu đồ:
+- Số lượng lịch hẹn theo ngày.
+- Phân bố trạng thái lịch hẹn.
+- Đơn hàng theo trạng thái.
+- Dịch vụ được đặt nhiều nhất.
+
+Số liệu và biểu đồ phải được tính từ dữ liệu thực tế đang lưu trong ứng dụng, không điền số giả cố định.
+
+Nếu chưa có dữ liệu, hiển thị trạng thái rỗng và hướng dẫn tạo dữ liệu mẫu.
+
+Phân biệt rõ tổng giá trị đơn hàng, tiền cọc và doanh thu mô phỏng. Không cộng tiền cọc và toàn bộ giá trị dịch vụ thành doanh thu hai lần.
+
+### 4. Quản lý lịch hẹn — `/admin/bookings`
+
+Hiển thị bảng có:
+- Mã lịch.
+- Khách hàng.
+- Số điện thoại.
+- Dịch vụ.
+- Ngày hẹn.
+- Giờ hẹn.
+- Tổng giá trị.
+- Tiền cọc.
+- Trạng thái thanh toán.
+- Trạng thái lịch.
+- Thao tác.
+
+Chức năng:
+- Tìm kiếm theo mã lịch, tên và số điện thoại.
+- Lọc theo ngày.
+- Lọc theo trạng thái.
+- Lọc theo dịch vụ.
+- Xem chi tiết.
+- Xác nhận lịch.
+- Đánh dấu đã hoàn thành.
+- Hủy lịch theo quy tắc.
+- Cập nhật lịch nếu đủ điều kiện.
+- Xem lịch sử thay đổi.
+- Xem số tiền hoàn mô phỏng.
+- Xem ghi chú của khách hàng.
+
+Các trạng thái lịch nên thống nhất, ví dụ:
+- Chờ xác nhận.
+- Đã xác nhận.
+- Đã hoàn thành.
+- Đã hủy.
+
+Trạng thái thanh toán tách riêng:
+- Chưa thanh toán.
+- Cọc đã thanh toán (mô phỏng).
+- Thanh toán thất bại.
+- Đã hoàn tiền (mô phỏng).
+- Hoàn tiền một phần (mô phỏng).
+
+Không tự động coi lịch đã hoàn thành chỉ vì thanh toán cọc thành công.
+
+Mọi thao tác của quản trị viên phải cập nhật nguồn dữ liệu chung và phản ánh đúng ở trang người dùng.
+
+### 5. Quản lý dịch vụ — `/admin/services`
+
+Tạo bảng quản lý dịch vụ với:
+- Hình ảnh.
+- Tên dịch vụ.
+- Danh mục.
+- Giá.
+- Thời lượng.
+- Trạng thái.
+- Thao tác.
+
+Chức năng:
+- Thêm dịch vụ.
+- Sửa dịch vụ.
+- Xóa hoặc ngừng cung cấp dịch vụ.
+- Tải lên hoặc chọn ảnh nếu môi trường hỗ trợ; nếu không, cho nhập URL ảnh.
+- Kiểm tra giá không âm.
+- Kiểm tra thời lượng hợp lệ.
+- Tìm kiếm và lọc.
+
+Có biểu mẫu rõ ràng và thông báo kết quả.
+
+Ưu tiên ngừng cung cấp thay vì xóa cứng dịch vụ đã có lịch sử đặt, nhằm tránh làm hỏng dữ liệu lịch hẹn cũ.
+
+Khi dịch vụ được thêm hoặc sửa, trang người dùng phải cập nhật tương ứng.
+
+### 6. Quản lý sản phẩm — `/admin/products`
+
+Hiển thị:
+- Mã sản phẩm.
+- Hình ảnh.
+- Tên sản phẩm.
+- Danh mục.
+- Giá.
+- Số lượng tồn kho.
+- Trạng thái.
+- Thao tác.
+
+Chức năng:
+- Thêm, sửa, xóa hoặc ẩn sản phẩm.
+- Cập nhật giá.
+- Cập nhật tồn kho.
+- Tìm kiếm.
+- Lọc danh mục.
+- Cảnh báo sản phẩm sắp hết hàng.
+- Cảnh báo sản phẩm hết hàng.
+
+Không cho nhập giá âm hoặc tồn kho âm. Những thay đổi phải được cập nhật sang cửa hàng người dùng.
+
+### 7. Quản lý đơn hàng — `/admin/orders`
+
+Hiển thị:
+- Mã đơn hàng.
+- Tên khách.
+- Số điện thoại.
+- Ngày đặt.
+- Danh sách sản phẩm.
+- Tổng tiền.
+- Phương thức thanh toán.
+- Trạng thái thanh toán.
+- Trạng thái đơn hàng.
+
+Chức năng:
+- Tìm kiếm đơn.
+- Lọc theo ngày và trạng thái.
+- Xem chi tiết.
+- Cập nhật trạng thái xử lý.
+- Cập nhật trạng thái giao hàng.
+- Hủy đơn theo quy tắc demo.
+- Xem lịch sử trạng thái.
+
+Các trạng thái gợi ý:
+- Chờ xử lý.
+- Đã xác nhận.
+- Đang chuẩn bị.
+- Đang giao.
+- Đã hoàn thành.
+- Đã hủy.
+
+Kiểm tra các chuyển đổi trạng thái để tránh trường hợp không hợp lý. Khi hủy đơn, xử lý tồn kho theo một quy tắc nhất quán và tránh hoàn kho nhiều lần.
+
+### 8. Quản lý khách hàng — `/admin/customers`
+
+Hiển thị:
+- Mã khách hàng.
+- Họ tên.
+- Email.
+- Số điện thoại.
+- Ngày đăng ký.
+- Số lịch hẹn.
+- Số đơn hàng.
+- Tổng giá trị mua hàng mô phỏng.
+- Trạng thái tài khoản.
+
+Chức năng:
+- Tìm kiếm khách hàng.
+- Xem chi tiết.
+- Xem lịch sử đặt lịch.
+- Xem lịch sử mua hàng.
+- Cập nhật thông tin phù hợp.
+- Khóa hoặc mở khóa tài khoản demo nếu tính năng được triển khai.
+
+Không cho quản trị viên tùy tiện xem mật khẩu. Không để khách hàng chỉnh sửa hoặc xem thông tin của tài khoản khác.
+
+### 9. Quản lý ưu đãi — `/admin/promotions`
+
+Chức năng:
+- Tạo mã giảm giá.
+- Sửa mã giảm giá.
+- Ngừng áp dụng hoặc xóa mã chưa được sử dụng.
+- Cài đặt phần trăm giảm hoặc số tiền giảm cố định.
+- Cài đặt giá trị đơn hàng tối thiểu.
+- Cài đặt thời gian bắt đầu và kết thúc.
+- Cài đặt số lượt sử dụng tối đa.
+- Cài đặt phạm vi áp dụng: sản phẩm, dịch vụ hoặc toàn bộ đơn hàng.
+- Xem số lượt đã sử dụng.
+
+Có kiểm tra dữ liệu để tránh mã giảm giá không hợp lệ, giảm giá vượt quá tổng tiền hoặc áp dụng ngoài thời gian quy định.
+
+Ưu đãi do quản trị viên tạo phải xuất hiện ở trang người dùng và được kiểm tra khi khách sử dụng.
+
+### 10. Quản lý tin nhắn liên hệ — `/admin/messages`
+
+Hiển thị các tin nhắn gửi từ trang liên hệ.
+
+Chức năng:
+- Xem nội dung.
+- Xem tên và thông tin liên hệ.
+- Đánh dấu đã đọc.
+- Đánh dấu đã xử lý.
+- Xóa tin nhắn sau khi xác nhận.
+
+Dữ liệu lấy từ nguồn dữ liệu chung.
+
+### 11. Cài đặt — `/admin/settings`
+
+Cho phép quản trị viên thay đổi các thông tin demo như:
+- Tên spa.
+- Số điện thoại.
+- Email.
+- Địa chỉ.
+- Giờ hoạt động.
+- Tỷ lệ đặt cọc mặc định.
+- Các thông tin hiển thị ở footer.
+
+Không cho phép thay đổi tùy tiện các quy tắc cốt lõi mà không cập nhật đồng bộ toàn ứng dụng.
+
+Bổ sung nút “Khôi phục dữ liệu demo” có hộp thoại xác nhận. Chỉ dành cho quản trị viên. Thao tác này phải được giải thích rõ là sẽ xóa dữ liệu demo đã phát sinh và khởi tạo lại dữ liệu mẫu.
+
+---
+
+## VI. DỮ LIỆU VÀ MỐI LIÊN KẾT GIỮA HAI KHU VỰC
+
+Đây là yêu cầu bắt buộc.
+
+Xây dựng mô hình dữ liệu nhất quán cho:
+- Người dùng.
+- Dịch vụ.
+- Lịch hẹn.
+- Sản phẩm.
+- Giỏ hàng.
+- Đơn hàng.
+- Mã giảm giá.
+- Chương trình ưu đãi.
+- Kết quả mini game.
+- Tin nhắn liên hệ.
+- Lịch sử thay đổi trạng thái.
+
+Mỗi bản ghi cần có mã định danh ổn định. Lịch hẹn và đơn hàng phải lưu mã khách hàng để xác định quyền truy cập.
+
+Yêu cầu đồng bộ:
+1. Khách tạo lịch hẹn thì quản trị viên nhìn thấy lịch đó.
+2. Quản trị viên xác nhận lịch thì khách nhìn thấy trạng thái mới.
+3. Khách hủy lịch hợp lệ thì quản trị viên nhìn thấy lịch đã hủy và số tiền hoàn mô phỏng.
+4. Quản trị viên sửa giá dịch vụ thì trang người dùng hiển thị giá mới.
+5. Quản trị viên thêm hoặc sửa sản phẩm thì cửa hàng hiển thị thay đổi.
+6. Khách tạo đơn hàng thì đơn xuất hiện trong trang quản trị.
+7. Quản trị viên cập nhật đơn hàng thì khách nhìn thấy trạng thái mới trong lịch sử mua hàng.
+8. Mã giảm giá do quản trị viên tạo phải được kiểm tra đúng ở trang thanh toán.
+9. Thông tin khách hàng và lịch sử mua hàng phải liên kết nhất quán.
+10. Dữ liệu phải được lưu lại khi tải lại trang trong phạm vi cơ chế lưu trữ đã chọn.
+
+Nếu dùng localStorage, cần cập nhật giao diện sau mỗi lần ghi dữ liệu. Có thể dùng custom event hoặc cơ chế state dùng chung để các component đang mở trong cùng ứng dụng cập nhật ngay. Đồng thời xử lý sự kiện storage khi dữ liệu thay đổi từ tab khác nếu cần.
+
+Không tạo dữ liệu riêng biệt cho trang quản trị và trang người dùng. Không dùng hai mảng hard-code độc lập cho cùng một loại dữ liệu.
+
+Tạo dữ liệu mẫu đủ để trình diễn, bao gồm:
+- Ít nhất 8 dịch vụ.
+- Ít nhất 8 sản phẩm.
+- Một số khách hàng demo.
+- Một số lịch hẹn với nhiều trạng thái.
+- Một số đơn hàng.
+- Một số mã ưu đãi.
+- Tin nhắn liên hệ mẫu.
+
+Đánh dấu dữ liệu là dữ liệu minh họa khi phù hợp. Cung cấp cách khôi phục dữ liệu mẫu dễ sử dụng.
+
+---
+
+## VII. QUY TẮC NGHIỆP VỤ VÀ KIỂM TRA DỮ LIỆU
+
+Tạo các hàm nghiệp vụ dùng chung, tránh lặp lại logic giữa các trang.
+
+Các quy tắc:
+- Không đặt lịch trong quá khứ.
+- Không đặt lịch ngoài giờ hoạt động.
+- Không tạo lịch trùng không hợp lệ.
+- Không xác nhận thanh toán mô phỏng khi thao tác thất bại.
+- Không áp dụng mã giảm giá hết hạn.
+- Không bán vượt tồn kho.
+- Không tạo đơn hàng trùng khi bấm liên tục.
+- Không cho khách truy cập dữ liệu riêng của khách khác.
+- Không cho tài khoản khách hàng thực hiện chức năng quản trị.
+- Không cho đổi lịch khi còn dưới 24 giờ trước lịch cũ.
+- Tính tiền hoàn theo đúng chính sách hủy.
+- Định dạng tiền và thời gian thống nhất.
+- Xác nhận trước thao tác xóa hoặc khôi phục dữ liệu.
+- Hiển thị lỗi thân thiện thay vì để ứng dụng bị treo hoặc trắng trang.
+
+Các phép tính về tiền phải sử dụng giá trị số hợp lệ, tránh sai số khi tính phần trăm. Hiển thị tiền theo định dạng Việt Nam.
+
+Nếu phát hiện dữ liệu không hợp lệ trong localStorage, xử lý có kiểm soát và cung cấp cách khôi phục dữ liệu mẫu.
+
+---
+
+## VIII. TRẢI NGHIỆM NGƯỜI DÙNG VÀ CHẤT LƯỢNG GIAO DIỆN
+
+Tất cả các trang phải được hoàn thiện về mặt trình bày:
+- Không để trang trống.
+- Không để ảnh lỗi hoặc đường dẫn điều hướng hỏng.
+- Không dùng văn bản Lorem Ipsum.
+- Không để nút không hoạt động.
+- Không để biểu mẫu gửi thành công khi dữ liệu không hợp lệ.
+- Có trạng thái loading khi phù hợp.
+- Có thông báo thành công và lỗi.
+- Có xác nhận trước thao tác quan trọng.
+- Có trạng thái rỗng khi không có dữ liệu.
+- Có phân trang hoặc cách hiển thị hợp lý khi bảng dài.
+- Có tìm kiếm và lọc ở các bảng quản trị cần thiết.
+- Có định dạng ngày giờ và tiền tệ nhất quán.
+- Có khả năng điều hướng bằng bàn phím ở các thành phần cơ bản.
+- Đảm bảo độ tương phản và kích thước chữ dễ đọc.
+
+Dùng hình ảnh phù hợp với phong cách An Nhiên. Nếu không thể tải ảnh từ nguồn ngoài, sử dụng ảnh hoặc hình nền dự phòng hợp lý để tránh khung ảnh trống.
+
+Tránh thiết kế dashboard quá nhiều màu. Sử dụng màu trạng thái có ý nghĩa và thống nhất.
+
+---
+
+## IX. CÁC LUỒNG KIỂM TRA BẮT BUỘC
+
+Sau khi xây dựng, tự kiểm tra các kịch bản sau.
+
+### Kịch bản 1: Đặt lịch từ trang người dùng
+1. Mở trang chủ.
+2. Vào trang dịch vụ.
+3. Chọn một dịch vụ.
+4. Chọn ngày giờ hợp lệ.
+5. Nhập thông tin khách.
+6. Xác nhận thông tin.
+7. Mô phỏng thanh toán thành công.
+8. Kiểm tra mã lịch và trạng thái.
+9. Tải lại trang.
+10. Kiểm tra lịch hẹn vẫn còn trong dữ liệu.
+
+### Kịch bản 2: Kiểm tra trang quản trị
+1. Đăng xuất khỏi tài khoản khách.
+2. Đăng nhập bằng tài khoản quản trị demo.
+3. Vào dashboard.
+4. Kiểm tra số liệu tổng quan.
+5. Mở danh sách lịch hẹn.
+6. Xác nhận lịch vừa tạo xuất hiện.
+7. Thay đổi trạng thái lịch.
+8. Kiểm tra trạng thái được lưu.
+
+### Kịch bản 3: Kiểm tra dữ liệu đồng bộ
+1. Đăng xuất khỏi tài khoản quản trị.
+2. Đăng nhập lại bằng tài khoản khách.
+3. Mở lịch hẹn của tôi.
+4. Kiểm tra trạng thái đã được quản trị viên cập nhật.
+5. Quay lại trang quản trị và kiểm tra dữ liệu không bị mất.
+
+### Kịch bản 4: Kiểm tra hủy và đổi lịch
+- Hủy lịch trước ít nhất 24 giờ: hoàn 100% tiền cọc mô phỏng.
+- Hủy lịch dưới 24 giờ: hoàn 50%, giữ lại 50%.
+- Đổi lịch khi còn ít nhất 24 giờ: cho phép nếu giờ mới hợp lệ.
+- Đổi lịch khi còn dưới 24 giờ: từ chối và giải thích lý do.
+- Kiểm tra các trường hợp sát mốc 24 giờ.
+- Kiểm tra không hoàn tiền hoặc cập nhật tồn tại hai lần do bấm nút liên tục.
+
+### Kịch bản 5: Kiểm tra cửa hàng
+1. Thêm sản phẩm vào giỏ.
+2. Thay đổi số lượng.
+3. Áp dụng mã giảm giá hợp lệ.
+4. Thử mã hết hạn hoặc không hợp lệ.
+5. Tạo đơn hàng demo.
+6. Kiểm tra đơn xuất hiện trong trang quản trị.
+7. Cập nhật trạng thái đơn.
+8. Kiểm tra khách hàng nhìn thấy trạng thái mới.
+
+### Kịch bản 6: Kiểm tra quản lý dữ liệu
+- Thêm dịch vụ trong trang quản trị.
+- Sửa giá dịch vụ.
+- Kiểm tra trang người dùng hiển thị giá mới.
+- Thêm hoặc sửa sản phẩm.
+- Kiểm tra cửa hàng cập nhật.
+- Tạo mã giảm giá.
+- Kiểm tra mã có thể sử dụng theo đúng điều kiện.
+
+### Kịch bản 7: Kiểm tra tài khoản và phân quyền
+- Đăng ký khách hàng.
+- Đăng nhập và đăng xuất.
+- Kiểm tra khách chỉ thấy dữ liệu của chính mình.
+- Thử truy cập `/admin` bằng tài khoản khách.
+- Đăng nhập bằng tài khoản quản trị demo.
+- Kiểm tra quyền truy cập quản trị.
+- Kiểm tra đường dẫn không tồn tại có trang 404 phù hợp.
+
+### Kịch bản 8: Kiểm tra giao diện
+- Kiểm tra menu hamburger.
+- Kiểm tra các liên kết.
+- Kiểm tra biểu mẫu.
+- Kiểm tra giỏ hàng.
+- Kiểm tra mini game.
+- Kiểm tra trang quản trị trên màn hình nhỏ.
+- Kiểm tra lỗi console và lỗi runtime.
+- Kiểm tra dữ liệu mẫu và thao tác khôi phục.
+
+Nếu môi trường hỗ trợ chạy test tự động, hãy bổ sung các bài test phù hợp. Nếu không, thực hiện kiểm tra thủ công các luồng chính và sửa những lỗi phát hiện được.
+
+Không tuyên bố đã kiểm thử thành công nếu chưa thực sự kiểm tra.
+
+---
+
+## X. YÊU CẦU HOÀN THIỆN TRƯỚC KHI BÀN GIAO
+
+Trước khi kết thúc, hãy:
+1. Hoàn thiện toàn bộ các trang và đường dẫn.
+2. Đảm bảo trang người dùng và trang quản trị có bố cục riêng biệt.
+3. Đảm bảo các thao tác quan trọng có logic hoạt động.
+4. Đảm bảo hai khu vực sử dụng chung dữ liệu.
+5. Đảm bảo dữ liệu demo tồn tại sau khi tải lại trang.
+6. Sửa các lỗi cú pháp, lỗi TypeScript, lỗi import và lỗi runtime.
+7. Kiểm tra các trường hợp dữ liệu trống và dữ liệu không hợp lệ.
+8. Đảm bảo website chạy được trong môi trường hiện tại.
+9. Giữ giao diện nhất quán, tinh tế và đúng phong cách An Nhiên.
+10. Không xóa chức năng đang hoạt động chỉ để thay thế bằng giao diện minh họa.
+
+Sau khi triển khai, cung cấp hướng dẫn sử dụng ngắn gọn gồm:
+- Cách chạy website.
+- Đường dẫn trang người dùng.
+- Đường dẫn trang quản trị.
+- Tài khoản demo khách hàng.
+- Tài khoản demo quản trị viên.
+- Cách thử đặt lịch.
+- Cách kiểm tra dữ liệu đồng bộ.
+- Cách khôi phục dữ liệu demo.
+- Những chức năng nào được mô phỏng và giới hạn của phiên bản demo.
+
+Nếu chưa hoàn thành được một chức năng, hãy nói rõ chức năng đó chưa hoàn thành và lý do. Không giả vờ rằng chức năng đã hoạt động.
+
+**MỤC TIÊU CUỐI CÙNG:** Tạo ra một website An Nhiên Spa có giao diện đẹp, chuyên nghiệp, dễ sử dụng, có đầy đủ khu vực người dùng và quản trị, dữ liệu được liên kết nhất quán, các nghiệp vụ chính hoạt động được trong phạm vi demo và đủ hoàn thiện để trình bày, giải thích, kiểm tra trước giảng viên.
+
+Hãy bắt đầu bằng việc kiểm tra dự án hiện có, sau đó trực tiếp triển khai và hoàn thiện ứng dụng. Không chỉ trả lời bằng kế hoạch hoặc hướng dẫn lý thuyết.

@@ -3,6 +3,7 @@ import { useApp } from '../../context/AppContext';
 import { formatVND } from '../../utils/formatters';
 import { ServiceItem, ServiceCategory } from '../../types';
 import { Plus, Edit, Power, Search, Clock, Sparkles } from 'lucide-react';
+import { IMAGES } from '../../assets/images';
 
 export const AdminServicesPage: React.FC = () => {
   const { services, saveService, toggleServiceStatus, showToast } = useApp();
@@ -18,7 +19,7 @@ export const AdminServicesPage: React.FC = () => {
   const [price, setPrice] = useState<number>(450000);
   const [durationMinutes, setDurationMinutes] = useState<number>(60);
   const [description, setDescription] = useState('');
-  const [imageUrl, setImageUrl] = useState('/src/assets/images/service_facial_treatment_1792632797197.jpg');
+  const [imageUrl, setImageUrl] = useState(IMAGES.serviceFacialTreatment);
 
   const filteredServices = services.filter((s) => {
     if (!searchTerm.trim()) return true;
@@ -41,7 +42,7 @@ export const AdminServicesPage: React.FC = () => {
     setPrice(450000);
     setDurationMinutes(60);
     setDescription('');
-    setImageUrl('/src/assets/images/service_facial_treatment_1792632797197.jpg');
+    setImageUrl(IMAGES.serviceFacialTreatment);
     setIsModalOpen(true);
   };
 
@@ -80,7 +81,7 @@ export const AdminServicesPage: React.FC = () => {
       fullDescription: editingService?.fullDescription || description.trim(),
       price: Number(price),
       durationMinutes: Number(durationMinutes),
-      imageUrl: imageUrl.trim() || '/src/assets/images/service_facial_treatment_1792632797197.jpg',
+      imageUrl: imageUrl.trim() || IMAGES.serviceFacialTreatment,
       steps: editingService?.steps || [
         'Đón tiếp & ngâm chân thảo mộc',
         'Thực hiện liệu trình chuyên sâu',

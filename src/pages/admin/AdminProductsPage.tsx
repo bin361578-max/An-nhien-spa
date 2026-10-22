@@ -3,6 +3,7 @@ import { useApp } from '../../context/AppContext';
 import { formatVND } from '../../utils/formatters';
 import { ProductItem, ProductCategory } from '../../types';
 import { Plus, Edit, Search, AlertTriangle, Package, Check, Save } from 'lucide-react';
+import { IMAGES } from '../../assets/images';
 
 export const AdminProductsPage: React.FC = () => {
   const { products, saveProduct, updateProductStock, showToast } = useApp();
@@ -20,7 +21,7 @@ export const AdminProductsPage: React.FC = () => {
   const [stock, setStock] = useState<number>(20);
   const [volumeOrWeight, setVolumeOrWeight] = useState('50ml');
   const [description, setDescription] = useState('');
-  const [imageUrl, setImageUrl] = useState('/src/assets/images/product_herbal_serum_1792632798964.jpg');
+  const [imageUrl, setImageUrl] = useState(IMAGES.productHerbalSerum);
 
   // Inline stock edit
   const [stockEditId, setStockEditId] = useState<string | null>(null);
@@ -54,7 +55,7 @@ export const AdminProductsPage: React.FC = () => {
     setStock(20);
     setVolumeOrWeight('50ml');
     setDescription('');
-    setImageUrl('/src/assets/images/product_herbal_serum_1792632798964.jpg');
+    setImageUrl(IMAGES.productHerbalSerum);
     setIsModalOpen(true);
   };
 
@@ -96,7 +97,7 @@ export const AdminProductsPage: React.FC = () => {
       fullDescription: editingProduct?.fullDescription || description.trim(),
       price: Number(price),
       stock: Number(stock),
-      imageUrl: imageUrl.trim() || '/src/assets/images/product_herbal_serum_1792632798964.jpg',
+      imageUrl: imageUrl.trim() || IMAGES.productHerbalSerum,
       volumeOrWeight: volumeOrWeight.trim() || '50ml',
       status: 'active'
     };

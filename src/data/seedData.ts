@@ -8,6 +8,7 @@ import {
   ContactMessage,
   SpaSettings
 } from '../types';
+import { IMAGES } from '../assets/images';
 
 export const SEED_USERS: User[] = [
   {
@@ -49,7 +50,7 @@ export const SEED_SERVICES: ServiceItem[] = [
     fullDescription: 'Liệu trình chăm sóc da mặt chuyên sâu kết hợp phương pháp xông hơi thảo dược cung đình, hút dầu bã nhờn dịu êm, massage kích hoạt lưu thông máu và đắp mặt nạ ngọc trai thiên nhiên. Phù hợp cho mọi loại da, đặc biệt là da xỉn màu, mệt mỏi.',
     price: 450000,
     durationMinutes: 75,
-    imageUrl: '/src/assets/images/service_facial_treatment_1792632797197.jpg',
+    imageUrl: IMAGES.serviceFacialTreatment,
     steps: [
       'Tẩy trang sinh học & Rửa mặt tạo bọt thảo mộc',
       'Tẩy tế bào chết enzyme hoa quả dịu nhẹ',
@@ -76,7 +77,7 @@ export const SEED_SERVICES: ServiceItem[] = [
     fullDescription: 'Liệu pháp ứng dụng nhiệt năng từ đá nham thạch tự nhiên và muối khoáng cổ Himalaya tác động lên các luân xa dọc sống lưng. Tinh dầu oải hương cùng bàn tay kỹ thuật viên điêu luyện giúp xua tan áp lực thần kinh và kích thích giấc ngủ sâu.',
     price: 550000,
     durationMinutes: 90,
-    imageUrl: '/src/assets/images/service_massage_therapy_1792632798168.jpg',
+    imageUrl: IMAGES.serviceMassageTherapy,
     steps: [
       'Ngâm chân thảo dược nước ấm với gừng tươi và muối khoáng',
       'Khởi động ấn huyệt khô toàn thân khai thông kinh mạch',
@@ -103,7 +104,7 @@ export const SEED_SERVICES: ServiceItem[] = [
     fullDescription: 'Liệu trình tái tạo bề mặt da body nhẹ nhàng mà hiệu quả. Các hạt muối hồng Himalaya xay mịn kết hợp với tinh dầu hạnh nhân và sữa non giúp loại bỏ hoàn toàn các tế bào chết sần sùi ở khuỷu tay, đầu gối, lưng, mang lại làn da trắng sáng mềm mượt.',
     price: 420000,
     durationMinutes: 60,
-    imageUrl: '/src/assets/images/service_body_scrub_1792632798359.jpg',
+    imageUrl: IMAGES.serviceBodyScrub,
     steps: [
       'Tắm tráng ấm kích nở lỗ chân lông',
       'Thoa hỗn hợp muối khoáng Himalaya kết hợp sữa non toàn thân',
@@ -129,7 +130,7 @@ export const SEED_SERVICES: ServiceItem[] = [
     fullDescription: 'Công nghệ điện di nano không xâm lấn đưa trực tiếp dưỡng chất hoa hồng Damask hữu cơ và HA đa tầng sâu vào hạ bì, giúp giải quyết triệt để tình trạng da khô ráp, bong tróc hoặc đổ dầu do thiếu nước.',
     price: 680000,
     durationMinutes: 80,
-    imageUrl: '/src/assets/images/service_facial_treatment_1792632797197.jpg',
+    imageUrl: IMAGES.serviceFacialTreatment,
     steps: [
       'Làm sạch sâu 3 bước và tẩy da chết sinh học',
       'Xông hơi cấp ẩm với sương hoa hồng hữu cơ',
@@ -155,7 +156,7 @@ export const SEED_SERVICES: ServiceItem[] = [
     fullDescription: 'Phương pháp xoa bóp trị liệu chuyên sâu kết hợp bấm các huyệt Phong Trì, Kiên Tỉnh, Đại Chùy kết hợp đắp cao thảo dược giữ ấm vùng gáy lưng. Giúp đánh tan các cục u xơ cơ bắp, hỗ trợ giảm hẳn chứng đau đầu hoa mắt do thiếu máu não.',
     price: 390000,
     durationMinutes: 60,
-    imageUrl: '/src/assets/images/service_massage_therapy_1792632798168.jpg',
+    imageUrl: IMAGES.serviceMassageTherapy,
     steps: [
       'Thăm khám tình trạng co cứng cơ vùng vai gáy',
       'Đắp túi thảo dược ngải cứu nóng vùng gáy',
@@ -181,7 +182,7 @@ export const SEED_SERVICES: ServiceItem[] = [
     fullDescription: 'Làn da sống giữa môi trường khói bụi đô thị dễ tích tụ độc tố và bít tắc. Liệu trình kết hợp than tre hoạt tính hữu cơ và công nghệ oxy jet thổi bay bụi bẩn vi mô, kích hoạt hô hấp tế bào da khỏe mạnh.',
     price: 490000,
     durationMinutes: 70,
-    imageUrl: '/src/assets/images/service_facial_treatment_1792632797197.jpg',
+    imageUrl: IMAGES.serviceFacialTreatment,
     steps: [
       'Tẩy trang và rửa mặt bằng gel tràm trà tạo bọt mịn',
       'Tẩy da chết enzym bí ngô sinh học',
@@ -207,7 +208,7 @@ export const SEED_SERVICES: ServiceItem[] = [
     fullDescription: 'Liệu pháp dưỡng trắng body tự nhiên không lột tẩy. Dưỡng chất từ ngọc trai tự nhiên kết hợp sữa dê tươi nguyên chất thẩm thấu sâu nhờ nhiệt lượng máy phi thuyền quang phổ, tái tạo sắc tố da đều màu, bật tông an toàn.',
     price: 850000,
     durationMinutes: 90,
-    imageUrl: '/src/assets/images/service_body_scrub_1792632798359.jpg',
+    imageUrl: IMAGES.serviceBodyScrub,
     steps: [
       'Tẩy tế bào chết toàn thân với cám gạo sữa non',
       'Thoa hỗn hợp ủ bột ngọc trai xay mịn và sữa dê tươi',
@@ -232,7 +233,7 @@ export const SEED_SERVICES: ServiceItem[] = [
     fullDescription: 'Tận hưởng âm vang trầm bổng từ bộ chuông xoay Tây Tạng hợp kim 7 kim loại. Tần số rung động vi mô của chuông lan tỏa qua từng tế bào nước trong cơ thể, giải phóng mọi bức bối lo âu và đưa tâm trí vào trạng thái an yên tuyệt đối.',
     price: 600000,
     durationMinutes: 75,
-    imageUrl: '/src/assets/images/hero_spa_ambiance_1792632796767.jpg',
+    imageUrl: IMAGES.heroSpaAmbiance,
     steps: [
       'Lắng đọng tâm trí với trà thảo mộc hoa sen',
       'Khởi chuông định tâm 3 hồi',
@@ -261,7 +262,7 @@ export const SEED_PRODUCTS: ProductItem[] = [
     fullDescription: 'Sản phẩm serum phục hồi chuyên sâu chứa 85% chiết xuất thảo mộc hữu cơ. Kết cấu lỏng nhẹ, thẩm thấu nhanh trong 10 giây mà không bết dính. Hỗ trợ phục hồi da sau nặn mụn, treatment hoặc da nhạy cảm dễ kích ứng.',
     price: 380000,
     stock: 24,
-    imageUrl: '/src/assets/images/product_herbal_serum_1792632798964.jpg',
+    imageUrl: IMAGES.productHerbalSerum,
     volumeOrWeight: '30ml',
     status: 'active'
   },
@@ -275,7 +276,7 @@ export const SEED_PRODUCTS: ProductItem[] = [
     fullDescription: 'Kem dưỡng ẩm dịu nhẹ bào chế từ cánh hoa cúc xu xi (Calendula) thu hoạch thủ công kết hợp bơ hạt mỡ organic. Cung cấp độ ẩm dồi dào, tái tạo màng lipid bảo vệ da mà không gây bít tắc lỗ chân lông.',
     price: 320000,
     stock: 18,
-    imageUrl: '/src/assets/images/product_herbal_serum_1792632798964.jpg',
+    imageUrl: IMAGES.productHerbalSerum,
     volumeOrWeight: '50ml',
     status: 'active'
   },
@@ -289,7 +290,7 @@ export const SEED_PRODUCTS: ProductItem[] = [
     fullDescription: 'Dạng gel tạo bọt mịn tơi như bông gòn, rửa sạch bụi mịn PM2.5 và dầu thừa mà không làm da căng rát. Chiết xuất tinh dầu tràm trà Úc kiểm soát mụn viêm kết hợp polyphenol trong trà xanh chống oxy hóa mạnh mẽ.',
     price: 240000,
     stock: 35,
-    imageUrl: '/src/assets/images/product_herbal_serum_1792632798964.jpg',
+    imageUrl: IMAGES.productHerbalSerum,
     volumeOrWeight: '150ml',
     status: 'active'
   },
@@ -303,7 +304,7 @@ export const SEED_PRODUCTS: ProductItem[] = [
     fullDescription: 'Hỗn hợp bùn khoáng thiên nhiên giàu nguyên tố vi lượng kết hợp với bột tràm trà và than tre hoạt tính. Có khả năng hấp phụ bã nhờn gấp 5 lần đất sét thông thường, mang lại cảm giác the mát sảng khoái.',
     price: 260000,
     stock: 15,
-    imageUrl: '/src/assets/images/product_herbal_serum_1792632798964.jpg',
+    imageUrl: IMAGES.productHerbalSerum,
     volumeOrWeight: '100g',
     status: 'active'
   },
@@ -317,7 +318,7 @@ export const SEED_PRODUCTS: ProductItem[] = [
     fullDescription: 'Chiết xuất từ gừng củ già trồng tự nhiên hòa quyện với tinh dầu sả chanh thanh khiết trên nền dầu hạnh nhân ép lạnh. Mùi hương ấm áp giải tỏa mọi mệt mỏi, hỗ trợ kích thích lưu thông máu và ngủ ngon.',
     price: 210000,
     stock: 40,
-    imageUrl: '/src/assets/images/service_body_scrub_1792632798359.jpg',
+    imageUrl: IMAGES.serviceBodyScrub,
     volumeOrWeight: '100ml',
     status: 'active'
   },
@@ -331,7 +332,7 @@ export const SEED_PRODUCTS: ProductItem[] = [
     fullDescription: 'Nước cất hoa hồng hữu cơ tinh khiết không cồn, không hương liệu tổng hợp. Tia xịt siêu mịn bao phủ làn da như làn sương mỏng, làm dịu da cháy nắng và duy trì độ mềm mại suốt ngày dài năng động.',
     price: 195000,
     stock: 28,
-    imageUrl: '/src/assets/images/product_herbal_serum_1792632798964.jpg',
+    imageUrl: IMAGES.productHerbalSerum,
     volumeOrWeight: '120ml',
     status: 'active'
   },
@@ -345,7 +346,7 @@ export const SEED_PRODUCTS: ProductItem[] = [
     fullDescription: 'Kem chống nắng thuần vật lý với Zinc Oxide siêu vi hạt, kết hợp chiết xuất rau má và trà xanh. Kháng nước tốt, tạo hiệu ứng da trắng hồng rạng rỡ không bóng nhờn.',
     price: 360000,
     stock: 22,
-    imageUrl: '/src/assets/images/product_herbal_serum_1792632798964.jpg',
+    imageUrl: IMAGES.productHerbalSerum,
     volumeOrWeight: '50ml',
     status: 'active'
   },
@@ -359,7 +360,7 @@ export const SEED_PRODUCTS: ProductItem[] = [
     fullDescription: 'Công thức ngâm bồn thư giãn chuẩn đông y với muối biển hầm, ngải cứu khô, quế chi, hoa hồi và tinh dầu tràm gió. Giúp thư giãn gân cốt, khử mùi hôi chân và mang lại trạng thái thư thái cho toàn thân.',
     price: 180000,
     stock: 30,
-    imageUrl: '/src/assets/images/service_body_scrub_1792632798359.jpg',
+    imageUrl: IMAGES.serviceBodyScrub,
     volumeOrWeight: '350g',
     status: 'active'
   }
@@ -467,7 +468,7 @@ export const SEED_ORDERS: Order[] = [
         name: 'Tinh Chất Phục Hồi Da An Nhiên Herbal Rejuvenation Serum',
         price: 380000,
         quantity: 1,
-        imageUrl: '/src/assets/images/product_herbal_serum_1792632798964.jpg'
+        imageUrl: IMAGES.productHerbalSerum
       },
       {
         productId: 'PRD-03',
@@ -475,7 +476,7 @@ export const SEED_ORDERS: Order[] = [
         name: 'Sữa Rửa Mặt Tạo Bọt Dịu Nhẹ Tràm Trà & Trà Xanh',
         price: 240000,
         quantity: 1,
-        imageUrl: '/src/assets/images/product_herbal_serum_1792632798964.jpg'
+        imageUrl: IMAGES.productHerbalSerum
       }
     ],
     subtotal: 620000,
@@ -502,7 +503,7 @@ export const SEED_ORDERS: Order[] = [
         name: 'Tinh Dầu Massage Gừng Cổ Truyền & Sả Chanh Thư Giãn',
         price: 210000,
         quantity: 2,
-        imageUrl: '/src/assets/images/service_body_scrub_1792632798359.jpg'
+        imageUrl: IMAGES.serviceBodyScrub
       }
     ],
     subtotal: 420000,

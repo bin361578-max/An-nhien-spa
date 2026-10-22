@@ -19,6 +19,7 @@ import {
   SEED_MESSAGES,
   SEED_SETTINGS
 } from '../data/seedData';
+import { resolveImageUrl } from '../assets/images';
 
 const KEYS = {
   USERS: 'annhien_users',
@@ -96,7 +97,11 @@ export const StorageService = {
 
   // SERVICES
   getServices(): ServiceItem[] {
-    return getStoredItem<ServiceItem[]>(KEYS.SERVICES, SEED_SERVICES);
+    const list = getStoredItem<ServiceItem[]>(KEYS.SERVICES, SEED_SERVICES);
+    return list.map(item => ({
+      ...item,
+      imageUrl: resolveImageUrl(item.imageUrl)
+    }));
   },
   saveServices(services: ServiceItem[]): void {
     setStoredItem(KEYS.SERVICES, services);
@@ -107,7 +112,11 @@ export const StorageService = {
 
   // PRODUCTS
   getProducts(): ProductItem[] {
-    return getStoredItem<ProductItem[]>(KEYS.PRODUCTS, SEED_PRODUCTS);
+    const list = getStoredItem<ProductItem[]>(KEYS.PRODUCTS, SEED_PRODUCTS);
+    return list.map(item => ({
+      ...item,
+      imageUrl: resolveImageUrl(item.imageUrl)
+    }));
   },
   saveProducts(products: ProductItem[]): void {
     setStoredItem(KEYS.PRODUCTS, products);
@@ -149,7 +158,14 @@ export const StorageService = {
 
   // ORDERS
   getOrders(): Order[] {
-    return getStoredItem<Order[]>(KEYS.ORDERS, SEED_ORDERS);
+    const list = getStoredItem<Order[]>(KEYS.ORDERS, SEED_ORDERS);
+    return list.map(order => ({
+      ...order,
+      items: order.items.map(item => ({
+        ...item,
+        imageUrl: resolveImageUrl(item.imageUrl)
+      }))
+    }));
   },
   saveOrders(orders: Order[]): void {
     setStoredItem(KEYS.ORDERS, orders);

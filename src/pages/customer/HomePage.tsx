@@ -15,6 +15,7 @@ import {
   Star,
   Quote
 } from 'lucide-react';
+import { IMAGES } from '../../assets/images';
 
 export const HomePage: React.FC = () => {
   const { services, products, addToCart } = useApp();
@@ -29,7 +30,7 @@ export const HomePage: React.FC = () => {
         {/* Background Image with Scrim */}
         <div className="absolute inset-0 z-0">
           <img
-            src="/src/assets/images/hero_spa_ambiance_1792632796767.jpg"
+            src={IMAGES.heroSpaAmbiance}
             alt="Không gian thư giãn An Nhiên Spa"
             className="w-full h-full object-cover object-center opacity-40 scale-105 transform animate-in fade-in duration-700"
             referrerPolicy="no-referrer"
@@ -95,7 +96,7 @@ export const HomePage: React.FC = () => {
           <div className="lg:col-span-5 relative">
             <div className="aspect-4/3 rounded-2xl overflow-hidden shadow-lg border border-[#E0DBCB]">
               <img
-                src="/src/assets/images/service_body_scrub_1792632798359.jpg"
+                src={IMAGES.serviceBodyScrub}
                 alt="Nguyên liệu thảo dược thiên nhiên"
                 className="w-full h-full object-cover"
                 referrerPolicy="no-referrer"

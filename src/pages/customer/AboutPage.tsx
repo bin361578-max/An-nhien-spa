@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Leaf, Heart, Sparkles, Shield, Clock, Users, ArrowRight } from 'lucide-react';
+import { IMAGES } from '../../assets/images';
 
 export const AboutPage: React.FC = () => {
   return (
@@ -47,7 +48,7 @@ export const AboutPage: React.FC = () => {
           <div className="relative">
             <div className="aspect-4/3 rounded-2xl overflow-hidden shadow-xl border border-[#DFD9C8]">
               <img
-                src="/src/assets/images/hero_spa_ambiance_1792632796767.jpg"
+                src={IMAGES.heroSpaAmbiance}
                 alt="Không gian phòng trị liệu An Nhiên Spa"
                 className="w-full h-full object-cover"
                 referrerPolicy="no-referrer"
@@ -137,19 +138,19 @@ export const AboutPage: React.FC = () => {
               name: 'Lương Y Lê Thảo My',
               role: 'Cố vấn chuyên môn Trị liệu Đông Y',
               exp: '12 năm kinh nghiệm châm cứu, bấm huyệt và trị liệu cơ xương khớp tại các viện y học cổ truyền.',
-              image: '/src/assets/images/service_facial_treatment_1792632797197.jpg'
+              image: IMAGES.serviceFacialTreatment
             },
             {
               name: 'Chuyên Viên Vũ Ngọc Hà',
               role: 'Trưởng nhóm Chăm sóc da liễu',
               exp: '8 năm kinh nghiệm phục hồi da tổn thương, đạt chứng chỉ chuyên sâu về điện di nano và thảo dược học.',
-              image: '/src/assets/images/service_body_scrub_1792632798359.jpg'
+              image: IMAGES.serviceBodyScrub
             },
             {
               name: 'Kỹ Thuật Viên Nguyễn Hoàng Nam',
               role: 'Chuyên gia Massage Đá Nóng & Chuông Xoay',
               exp: 'Đào tạo trị liệu chuông xoay năng lượng Tây Tạng và các kỹ thuật giải cơ sâu chuyên biệt cho nhân viên văn phòng.',
-              image: '/src/assets/images/service_massage_therapy_1792632798168.jpg'
+              image: IMAGES.serviceMassageTherapy
             }
           ].map((member, idx) => (
             <div key={idx} className="bg-white rounded-2xl overflow-hidden border border-[#DFDAC8] shadow-xs flex flex-col">
@@ -187,7 +188,7 @@ export const AboutPage: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="aspect-4/3 rounded-2xl overflow-hidden shadow-xs border border-[#E0DBCB]">
             <img
-              src="/src/assets/images/hero_spa_ambiance_1792632796767.jpg"
+              src={IMAGES.heroSpaAmbiance}
               alt="Phòng trị liệu"
               className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
               referrerPolicy="no-referrer"
@@ -195,7 +196,7 @@ export const AboutPage: React.FC = () => {
           </div>
           <div className="aspect-4/3 rounded-2xl overflow-hidden shadow-xs border border-[#E0DBCB]">
             <img
-              src="/src/assets/images/service_facial_treatment_1792632797197.jpg"
+              src={IMAGES.serviceFacialTreatment}
               alt="Khu vực chăm sóc da"
               className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
               referrerPolicy="no-referrer"
@@ -203,7 +204,7 @@ export const AboutPage: React.FC = () => {
           </div>
           <div className="aspect-4/3 rounded-2xl overflow-hidden shadow-xs border border-[#E0DBCB]">
             <img
-              src="/src/assets/images/service_body_scrub_1792632798359.jpg"
+              src={IMAGES.serviceBodyScrub}
               alt="Góc thảo dược và bồn tắm"
               className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
               referrerPolicy="no-referrer"

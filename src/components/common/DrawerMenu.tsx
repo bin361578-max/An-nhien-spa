@@ -166,18 +166,6 @@ export const DrawerMenu: React.FC<DrawerMenuProps> = ({ isOpen, onClose }) => {
               </div>
             )}
           </div>
-
-          {/* Admin shortcut */}
-          <div className="pt-2 border-t border-[#E5E2D6]">
-            <Link
-              to="/admin"
-              onClick={onClose}
-              className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-[#546E59] hover:bg-[#E8EFE9] rounded-lg transition-colors"
-            >
-              <ShieldAlert className="w-4 h-4 text-[#4A6B50]" />
-              <span>Khu vực Quản trị (Admin)</span>
-            </Link>
-          </div>
         </div>
 
         {/* Footer info */}

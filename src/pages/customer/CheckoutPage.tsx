@@ -90,24 +90,28 @@ export const CheckoutPage: React.FC = () => {
 
     setIsSubmitting(true);
 
-    setTimeout(() => {
-      const res = createOrderAction({
-        customerName: customerName.trim(),
-        customerPhone: customerPhone.trim(),
-        customerEmail: customerEmail.trim() || 'khach@annhienspa.demo',
-        shippingAddress: shippingAddress.trim(),
-        notes: notes.trim(),
-        couponCode,
-        discountAmount,
-        paymentMethod
-      });
+    setTimeout(async () => {
+      try {
+        const res = await createOrderAction({
+          customerName: customerName.trim(),
+          customerPhone: customerPhone.trim(),
+          customerEmail: customerEmail.trim() || 'khach@annhienspa.vn',
+          shippingAddress: shippingAddress.trim(),
+          notes: notes.trim(),
+          couponCode,
+          discountAmount,
+          paymentMethod
+        });
 
-      setIsSubmitting(false);
-
-      if (res.success && res.orderId) {
-        setConfirmedOrderId(res.orderId);
-      } else {
-        showToast(res.message || 'Lỗi khi tạo đơn hàng.', 'error');
+        if (res.success && res.orderId) {
+          setConfirmedOrderId(res.orderId);
+        } else {
+          showToast(res.message || 'Lỗi khi tạo đơn hàng.', 'error');
+        }
+      } catch (err: any) {
+        showToast(err?.message || 'Lỗi khi tạo đơn hàng.', 'error');
+      } finally {
+        setIsSubmitting(false);
       }
     }, 600);
   };

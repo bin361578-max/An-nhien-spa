@@ -78,9 +78,9 @@ export const MyBookingsPage: React.FC = () => {
     setCancelModalBooking(booking);
   };
 
-  const handleConfirmCancel = () => {
+  const handleConfirmCancel = async () => {
     if (!cancelModalBooking) return;
-    const res = cancelBookingAction(cancelModalBooking.id);
+    const res = await cancelBookingAction(cancelModalBooking.id);
     if (res.success) {
       setCancelModalBooking(null);
     }
@@ -100,13 +100,13 @@ export const MyBookingsPage: React.FC = () => {
     setRescheduleModalBooking(booking);
   };
 
-  const handleConfirmReschedule = () => {
+  const handleConfirmReschedule = async () => {
     if (!rescheduleModalBooking) return;
     if (!newDate || !newTime) {
       showToast('Vui lòng chọn ngày và giờ mới.', 'error');
       return;
     }
-    const res = rescheduleBookingAction(rescheduleModalBooking.id, newDate, newTime);
+    const res = await rescheduleBookingAction(rescheduleModalBooking.id, newDate, newTime);
     if (res.success) {
       setRescheduleModalBooking(null);
     } else {

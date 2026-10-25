@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo, useCallback } from 'react';
 import {
   User,
   ServiceItem,
@@ -10,13 +10,9 @@ import {
   SpaSettings,
   CartItem
 } from '../types';
-import { StorageService, STORAGE_CHANGE_EVENT } from '../services/storage';
-import {
-  generateBookingId,
-  generateOrderId,
-  calculateCancellationRefund,
-  canRescheduleBooking
-} from '../utils/formatters';
+import { StorageService } from '../services/storage';
+import { ApiService } from '../services/api';
+import { SEED_SERVICES, SEED_PRODUCTS, SEED_COUPONS, SEED_SETTINGS } from '../data/seedData';
 
 interface Toast {
   id: string;
@@ -26,6 +22,7 @@ interface Toast {
 
 interface AppContextType {
   currentUser: User | null;
+  isAdmin: boolean;
   users: User[];
   services: ServiceItem[];
   products: ProductItem[];
@@ -40,20 +37,22 @@ interface AppContextType {
   toasts: Toast[];
   showToast: (message: string, type?: 'success' | 'error' | 'info') => void;
   removeToast: (id: string) => void;
-  
-  // Auth
+
+  // Authentication
   login: (email: string, rolePreferred?: 'customer' | 'admin') => { success: boolean; message?: string };
+  loginAdmin: (email: string, password: string) => Promise<{ success: boolean; message?: string }>;
+  logoutAdmin: () => Promise<void>;
   register: (name: string, email: string, phone: string) => { success: boolean; message?: string };
   logout: () => void;
   updateProfile: (name: string, phone: string, email: string) => { success: boolean; message?: string };
-  
+
   // Cart
   addToCart: (productId: string, quantity?: number) => void;
   updateCartQuantity: (productId: string, quantity: number) => void;
   removeFromCart: (productId: string) => void;
   clearCart: () => void;
 
-  // Booking
+  // Booking (Public/Customer)
   createBooking: (bookingData: {
     serviceId: string;
     serviceName: string;
@@ -64,12 +63,11 @@ interface AppContextType {
     customerPhone: string;
     customerEmail: string;
     notes?: string;
-  }) => { success: boolean; bookingId?: string; message?: string };
-  
-  rescheduleBookingAction: (bookingId: string, newDate: string, newTime: string) => { success: boolean; message: string };
-  cancelBookingAction: (bookingId: string) => { success: boolean; message: string; refundAmount?: number };
+  }) => Promise<{ success: boolean; bookingId?: string; message?: string }>;
+  rescheduleBookingAction: (bookingId: string, newDate: string, newTime: string) => Promise<{ success: boolean; message: string }>;
+  cancelBookingAction: (bookingId: string) => Promise<{ success: boolean; message: string; refundAmount?: number }>;
 
-  // Orders
+  // Orders (Public/Customer)
   createOrderAction: (orderData: {
     customerName: string;
     customerPhone: string;
@@ -79,151 +77,244 @@ interface AppContextType {
     couponCode?: string;
     discountAmount: number;
     paymentMethod: 'cod' | 'card_simulation';
-  }) => { success: boolean; orderId?: string; message?: string };
+  }) => Promise<{ success: boolean; orderId?: string; message?: string }>;
 
-  // Admin Actions
-  updateBookingStatus: (bookingId: string, status: Booking['status'], paymentStatus?: Booking['paymentStatus']) => void;
-  updateOrderStatus: (orderId: string, status: Order['status'], paymentStatus?: Order['paymentStatus']) => void;
-  saveService: (service: ServiceItem) => void;
-  toggleServiceStatus: (serviceId: string) => void;
-  saveProduct: (product: ProductItem) => void;
-  updateProductStock: (productId: string, newStock: number) => void;
-  saveCoupon: (coupon: Coupon) => void;
-  deleteCoupon: (couponId: string) => void;
-  updateMessageStatus: (messageId: string, status: ContactMessage['status']) => void;
-  deleteMessage: (messageId: string) => void;
-  saveSettings: (settings: SpaSettings) => void;
-  resetDemoData: () => void;
+  // Admin Actions (Server-Protected via Bearer Token)
+  updateBookingStatus: (bookingId: string, status: Booking['status'], paymentStatus?: Booking['paymentStatus']) => Promise<void>;
+  updateOrderStatus: (orderId: string, status: Order['status'], paymentStatus?: Order['paymentStatus']) => Promise<void>;
+  saveService: (service: ServiceItem) => Promise<void>;
+  toggleServiceStatus: (serviceId: string) => Promise<void>;
+  saveProduct: (product: ProductItem) => Promise<void>;
+  updateProductStock: (productId: string, newStock: number) => Promise<void>;
+  saveCoupon: (coupon: Coupon) => Promise<void>;
+  deleteCoupon: (couponId: string) => Promise<void>;
+  updateMessageStatus: (messageId: string, status: ContactMessage['status']) => Promise<void>;
+  deleteMessage: (messageId: string) => Promise<void>;
+  saveSettings: (settings: SpaSettings) => Promise<void>;
+  resetDemoData: () => Promise<void>;
+  refreshAdminData: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(() => StorageService.getCurrentUser());
-  const [users, setUsers] = useState<User[]>(() => StorageService.getUsers());
-  const [services, setServices] = useState<ServiceItem[]>(() => StorageService.getServices());
-  const [products, setProducts] = useState<ProductItem[]>(() => StorageService.getProducts());
-  const [bookings, setBookings] = useState<Booking[]>(() => StorageService.getBookings());
-  const [orders, setOrders] = useState<Order[]>(() => StorageService.getOrders());
-  const [coupons, setCoupons] = useState<Coupon[]>(() => StorageService.getCoupons());
-  const [messages, setMessages] = useState<ContactMessage[]>(() => StorageService.getMessages());
-  const [settings, setSettings] = useState<SpaSettings>(() => StorageService.getSettings());
+  const [isAdmin, setIsAdmin] = useState<boolean>(() => ApiService.hasAdminToken());
+
+  // Public catalogs
+  const [services, setServices] = useState<ServiceItem[]>(() => SEED_SERVICES);
+  const [products, setProducts] = useState<ProductItem[]>(() => SEED_PRODUCTS);
+  const [coupons, setCoupons] = useState<Coupon[]>(() => SEED_COUPONS);
+  const [settings, setSettings] = useState<SpaSettings>(() => SEED_SETTINGS);
+
+  // Private Data (Isolated: empty for unauthorized visitors, populated only for authorized admin or customer-scoped)
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [messages, setMessages] = useState<ContactMessage[]>([]);
+
+  // Cart & Toasts
   const [cart, setCart] = useState<CartItem[]>(() => StorageService.getCart());
   const [toasts, setToasts] = useState<Toast[]>([]);
 
-  // Function to refresh state from storage
-  const syncStateFromStorage = () => {
-    setCurrentUser(StorageService.getCurrentUser());
-    setUsers(StorageService.getUsers());
-    setServices(StorageService.getServices());
-    setProducts(StorageService.getProducts());
-    setBookings(StorageService.getBookings());
-    setOrders(StorageService.getOrders());
-    setCoupons(StorageService.getCoupons());
-    setMessages(StorageService.getMessages());
-    setSettings(StorageService.getSettings());
-    setCart(StorageService.getCart());
-  };
-
-  useEffect(() => {
-    const handleStorageChange = () => {
-      syncStateFromStorage();
-    };
-
-    window.addEventListener(STORAGE_CHANGE_EVENT, handleStorageChange);
-    window.addEventListener('storage', handleStorageChange);
-
-    return () => {
-      window.removeEventListener(STORAGE_CHANGE_EVENT, handleStorageChange);
-      window.removeEventListener('storage', handleStorageChange);
-    };
-  }, []);
-
-  const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
+  const showToast = useCallback((message: string, type: 'success' | 'error' | 'info' = 'success') => {
     const id = Date.now().toString() + Math.random().toString(36).substring(2, 5);
     setToasts((prev) => [...prev, { id, message, type }]);
     setTimeout(() => {
-      removeToast(id);
+      setToasts((prev) => prev.filter((t) => t.id !== id));
     }, 4500);
-  };
+  }, []);
 
-  const removeToast = (id: string) => {
+  const removeToast = useCallback((id: string) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
+  }, []);
+
+  // Load admin data from server (Requires Admin Token)
+  const refreshAdminData = useCallback(async () => {
+    if (!ApiService.hasAdminToken()) return;
+    try {
+      const [adminBookings, adminOrders, adminCustomers, adminMessages, adminServices, adminProducts, adminCoupons, adminSettings] =
+        await Promise.all([
+          ApiService.fetchAdminBookings(),
+          ApiService.fetchAdminOrders(),
+          ApiService.fetchAdminCustomers(),
+          ApiService.fetchAdminMessages(),
+          ApiService.fetchAdminServices(),
+          ApiService.fetchAdminProducts(),
+          ApiService.fetchAdminCoupons(),
+          ApiService.fetchPublicSettings()
+        ]);
+
+      setBookings(adminBookings);
+      setOrders(adminOrders);
+      setUsers(adminCustomers);
+      setMessages(adminMessages);
+      if (adminServices.length > 0) setServices(adminServices);
+      if (adminProducts.length > 0) setProducts(adminProducts);
+      if (adminCoupons.length > 0) setCoupons(adminCoupons);
+      if (adminSettings) setSettings(adminSettings);
+    } catch (err) {
+      console.warn('Could not refresh admin data from server:', err);
+    }
+  }, []);
+
+  // Load customer's personal data scoped to their email
+  const refreshCustomerData = useCallback(async (email: string) => {
+    if (!email) return;
+    try {
+      const [myBookings, myOrders] = await Promise.all([
+        ApiService.fetchMyBookings(email),
+        ApiService.fetchMyOrders(email)
+      ]);
+      setBookings(myBookings);
+      setOrders(myOrders);
+    } catch (err) {
+      console.warn('Could not load customer personal data:', err);
+    }
+  }, []);
+
+  // Initial load
+  useEffect(() => {
+    // 1. Fetch public catalog from server
+    ApiService.fetchPublicServices().then((srv) => {
+      if (srv && srv.length > 0) setServices(srv);
+    });
+    ApiService.fetchPublicProducts().then((prd) => {
+      if (prd && prd.length > 0) setProducts(prd);
+    });
+    ApiService.fetchPublicCoupons().then((cpn) => {
+      if (cpn && cpn.length > 0) setCoupons(cpn);
+    });
+    ApiService.fetchPublicSettings().then((stg) => {
+      if (stg) setSettings(stg);
+    });
+
+    // 2. Verify admin token if stored in sessionStorage
+    if (ApiService.hasAdminToken()) {
+      ApiService.verifyAdminSession().then((res) => {
+        if (res.success && res.user) {
+          const adminUser: User = {
+            id: 'USR-ADMIN',
+            name: res.user.name || 'Quản Trị Viên An Nhiên',
+            email: res.user.email,
+            phone: '0908123456',
+            role: 'admin',
+            createdAt: new Date().toISOString(),
+            status: 'active'
+          };
+          setCurrentUser(adminUser);
+          setIsAdmin(true);
+          refreshAdminData();
+        } else {
+          ApiService.clearAdminToken();
+          setIsAdmin(false);
+          if (currentUser?.role === 'admin') {
+            setCurrentUser(null);
+          }
+        }
+      });
+    } else if (currentUser && currentUser.role === 'customer') {
+      refreshCustomerData(currentUser.email);
+    }
+  }, []);
+
+  // --- ADMIN AUTHENTICATION ---
+  const loginAdmin = async (email: string, password: string): Promise<{ success: boolean; message?: string }> => {
+    try {
+      const res = await ApiService.loginAdmin(email, password);
+      if (res.success && res.token && res.user) {
+        const adminUser: User = {
+          id: 'USR-ADMIN',
+          name: res.user.name || 'Quản Trị Viên An Nhiên',
+          email: res.user.email,
+          phone: '0908123456',
+          role: 'admin',
+          createdAt: new Date().toISOString(),
+          status: 'active'
+        };
+        setCurrentUser(adminUser);
+        setIsAdmin(true);
+        StorageService.setCurrentUser(adminUser);
+        await refreshAdminData();
+        showToast('Đăng nhập Quản trị viên thành công. Phiên làm việc bảo mật đã kích hoạt.', 'success');
+        return { success: true };
+      }
+      return { success: false, message: res.error || 'Email hoặc mật khẩu không chính xác.' };
+    } catch (err: any) {
+      return { success: false, message: 'Lỗi kết nối máy chủ xác thực.' };
+    }
   };
 
-  // Auth operations
+  const logoutAdmin = async (): Promise<void> => {
+    await ApiService.logoutAdmin();
+    setIsAdmin(false);
+    setCurrentUser(null);
+    StorageService.setCurrentUser(null);
+    setBookings([]);
+    setOrders([]);
+    setUsers([]);
+    setMessages([]);
+    showToast('Đã đăng xuất phiên làm việc quản trị viên an toàn.', 'info');
+  };
+
+  // --- CUSTOMER AUTHENTICATION ---
   const login = (email: string, rolePreferred?: 'customer' | 'admin') => {
-    const normalizedEmail = email.trim().toLowerCase();
-    const existing = users.find((u) => u.email.toLowerCase() === normalizedEmail);
-
-    if (existing) {
-      if (existing.status === 'blocked') {
-        return { success: false, message: 'Tài khoản này đã bị tạm khóa. Vui lòng liên hệ quản trị viên.' };
-      }
-      StorageService.setCurrentUser(existing);
-      showToast(`Chào mừng ${existing.name} quay trở lại!`, 'success');
-      return { success: true };
-    }
-
-    // If logging into admin with the demo email
-    if (normalizedEmail === 'admin@annhienspa.demo' || rolePreferred === 'admin') {
-      const adminUser: User = {
-        id: 'USR-ADMIN-01',
-        name: 'Quản Trị Viên An Nhiên',
-        email: normalizedEmail,
-        phone: '0908123456',
-        role: 'admin',
-        createdAt: new Date().toISOString(),
-        status: 'active'
+    // Admin MUST login via /admin/login with server-side authentication
+    if (rolePreferred === 'admin' || email.toLowerCase().includes('admin@')) {
+      return {
+        success: false,
+        message: 'Tài khoản quản trị viên yêu cầu đăng nhập bảo mật tại /admin/login.'
       };
-      const updatedUsers = [...users, adminUser];
-      StorageService.saveUsers(updatedUsers);
-      StorageService.setCurrentUser(adminUser);
-      showToast('Đăng nhập thành công với vai trò Quản trị viên.', 'success');
-      return { success: true };
     }
 
-    // Automatically create a demo customer account if entering a new email
-    const newCustomer: User = {
+    const cleanEmail = email.trim().toLowerCase();
+    const customerUser: User = {
       id: `USR-${Date.now().toString().slice(-6)}`,
-      name: normalizedEmail.split('@')[0],
-      email: normalizedEmail,
+      name: cleanEmail.split('@')[0],
+      email: cleanEmail,
       phone: '0912345678',
       role: 'customer',
       createdAt: new Date().toISOString(),
       status: 'active'
     };
-    const updatedUsers = [...users, newCustomer];
-    StorageService.saveUsers(updatedUsers);
-    StorageService.setCurrentUser(newCustomer);
-    showToast(`Chào mừng thành viên mới: ${newCustomer.name}`, 'success');
+
+    setCurrentUser(customerUser);
+    setIsAdmin(false);
+    StorageService.setCurrentUser(customerUser);
+    refreshCustomerData(customerUser.email);
+    showToast(`Chào mừng ${customerUser.name} quay trở lại!`, 'success');
     return { success: true };
   };
 
   const register = (name: string, email: string, phone: string) => {
-    const normalizedEmail = email.trim().toLowerCase();
-    if (users.some((u) => u.email.toLowerCase() === normalizedEmail)) {
-      return { success: false, message: 'Email này đã được sử dụng. Vui lòng đăng nhập.' };
-    }
+    const cleanEmail = email.trim().toLowerCase();
     const newUser: User = {
       id: `USR-${Date.now().toString().slice(-6)}`,
       name: name.trim(),
-      email: normalizedEmail,
+      email: cleanEmail,
       phone: phone.trim(),
       role: 'customer',
       createdAt: new Date().toISOString(),
       status: 'active'
     };
-    const updatedUsers = [...users, newUser];
-    StorageService.saveUsers(updatedUsers);
+    setCurrentUser(newUser);
+    setIsAdmin(false);
     StorageService.setCurrentUser(newUser);
-    showToast('Đăng ký tài khoản thành công!', 'success');
+    refreshCustomerData(newUser.email);
+    showToast('Đăng ký tài khoản thành viên thành công!', 'success');
     return { success: true };
   };
 
   const logout = () => {
-    StorageService.setCurrentUser(null);
-    showToast('Đã đăng xuất an toàn.', 'info');
+    if (isAdmin || currentUser?.role === 'admin') {
+      logoutAdmin();
+    } else {
+      setCurrentUser(null);
+      StorageService.setCurrentUser(null);
+      setBookings([]);
+      setOrders([]);
+      showToast('Đã đăng xuất tài khoản thành công.', 'info');
+    }
   };
 
   const updateProfile = (name: string, phone: string, email: string) => {
@@ -234,14 +325,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       phone: phone.trim(),
       email: email.trim().toLowerCase()
     };
-    const updatedUsers = users.map((u) => (u.id === currentUser.id ? updatedUser : u));
-    StorageService.saveUsers(updatedUsers);
+    setCurrentUser(updatedUser);
     StorageService.setCurrentUser(updatedUser);
     showToast('Cập nhật hồ sơ thành công!', 'success');
     return { success: true };
   };
 
-  // Cart operations
+  // --- CART OPERATIONS ---
   const addToCart = (productId: string, quantity: number = 1) => {
     const product = products.find((p) => p.id === productId);
     if (!product) {
@@ -271,6 +361,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       currentCart.push({ productId, quantity });
     }
 
+    setCart(currentCart);
     StorageService.saveCart(currentCart);
     showToast(`Đã thêm "${product.name}" vào giỏ hàng!`, 'success');
   };
@@ -287,16 +378,19 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       return;
     }
     const currentCart = cart.map((item) => (item.productId === productId ? { ...item, quantity } : item));
+    setCart(currentCart);
     StorageService.saveCart(currentCart);
   };
 
   const removeFromCart = (productId: string) => {
     const currentCart = cart.filter((item) => item.productId !== productId);
+    setCart(currentCart);
     StorageService.saveCart(currentCart);
     showToast('Đã bỏ sản phẩm khỏi giỏ hàng.', 'info');
   };
 
   const clearCart = () => {
+    setCart([]);
     StorageService.clearCart();
   };
 
@@ -311,8 +405,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }, 0);
   }, [cart, products]);
 
-  // Booking operations
-  const createBooking = (bookingData: {
+  // --- BOOKING OPERATIONS (PUBLIC) ---
+  const createBooking = async (bookingData: {
     serviceId: string;
     serviceName: string;
     servicePrice: number;
@@ -323,122 +417,47 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     customerEmail: string;
     notes?: string;
   }) => {
-    const depositRate = settings.depositRate || 0.3;
-    const totalAmount = bookingData.servicePrice;
-    const depositAmount = Math.round(totalAmount * depositRate);
-    const remainingAmount = totalAmount - depositAmount;
-
-    // Check duplicate slot simulation: maximum 3 clients per slot
-    const sameSlotBookings = bookings.filter(
-      (b) => b.date === bookingData.date && b.timeSlot === bookingData.timeSlot && b.status !== 'cancelled'
-    );
-    if (sameSlotBookings.length >= 3) {
-      return {
-        success: false,
-        message: 'Khung giờ này đã kín lịch hẹn. Quý khách vui lòng chọn khung giờ khác hoặc ngày khác.'
-      };
+    const res = await ApiService.submitBooking(bookingData);
+    if (res.success && res.bookingId) {
+      showToast(`Đặt lịch hẹn thành công! Mã số: ${res.bookingId}`, 'success');
+      if (currentUser?.email) {
+        refreshCustomerData(currentUser.email);
+      }
+      if (isAdmin) {
+        refreshAdminData();
+      }
+      return { success: true, bookingId: res.bookingId };
     }
-
-    const newBooking: Booking = {
-      id: generateBookingId(),
-      userId: currentUser?.id || 'GUEST',
-      customerName: bookingData.customerName,
-      customerPhone: bookingData.customerPhone,
-      customerEmail: bookingData.customerEmail,
-      serviceId: bookingData.serviceId,
-      serviceName: bookingData.serviceName,
-      servicePrice: bookingData.servicePrice,
-      date: bookingData.date,
-      timeSlot: bookingData.timeSlot,
-      notes: bookingData.notes || '',
-      totalAmount,
-      depositAmount,
-      remainingAmount,
-      depositPaid: true,
-      paymentStatus: 'deposit_paid',
-      status: 'pending',
-      createdAt: new Date().toISOString(),
-      rescheduleHistory: []
-    };
-
-    StorageService.addBooking(newBooking);
-    showToast(`Đặt lịch thành công! Mã lịch hẹn: ${newBooking.id}`, 'success');
-    return { success: true, bookingId: newBooking.id };
+    showToast(res.message || 'Lỗi khi đặt lịch hẹn.', 'error');
+    return { success: false, message: res.message };
   };
 
-  const rescheduleBookingAction = (bookingId: string, newDate: string, newTime: string) => {
-    const booking = bookings.find((b) => b.id === bookingId);
-    if (!booking) return { success: false, message: 'Không tìm thấy lịch hẹn.' };
-
-    const check = canRescheduleBooking(booking);
-    if (!check.allowed) {
-      return { success: false, message: check.reason || 'Không đủ điều kiện đổi lịch.' };
+  const rescheduleBookingAction = async (bookingId: string, newDate: string, newTime: string) => {
+    const res = await ApiService.rescheduleBooking(bookingId, newDate, newTime, currentUser?.email);
+    if (res.success) {
+      showToast(res.message, 'success');
+      if (currentUser?.email) refreshCustomerData(currentUser.email);
+      if (isAdmin) refreshAdminData();
+      return { success: true, message: res.message };
     }
-
-    // Check target date is not in past
-    const now = new Date();
-    const [h, m] = newTime.split(':').map(Number);
-    const targetDate = new Date(`${newDate}T00:00:00`);
-    targetDate.setHours(h, m, 0, 0);
-    if (targetDate <= now) {
-      return { success: false, message: 'Không thể dời lịch sang thời gian trong quá khứ.' };
-    }
-
-    const historyRecord = {
-      oldDate: booking.date,
-      oldTime: booking.timeSlot,
-      newDate,
-      newTime,
-      changedAt: new Date().toISOString(),
-      reason: 'Khách hàng dời lịch qua hệ thống trực tuyến'
-    };
-
-    const newHistory = [...(booking.rescheduleHistory || []), historyRecord];
-
-    const success = StorageService.updateBooking(bookingId, {
-      date: newDate,
-      timeSlot: newTime,
-      rescheduleHistory: newHistory
-    });
-
-    if (success) {
-      showToast(`Đổi lịch hẹn ${bookingId} thành công sang ${newDate} lúc ${newTime}.`, 'success');
-      return { success: true, message: 'Đổi lịch thành công!' };
-    }
-    return { success: false, message: 'Lỗi cập nhật dữ liệu.' };
+    showToast(res.message, 'error');
+    return { success: false, message: res.message };
   };
 
-  const cancelBookingAction = (bookingId: string) => {
-    const booking = bookings.find((b) => b.id === bookingId);
-    if (!booking) return { success: false, message: 'Không tìm thấy lịch hẹn.' };
-    if (booking.status === 'cancelled') {
-      return { success: false, message: 'Lịch hẹn này đã bị hủy trước đó.' };
+  const cancelBookingAction = async (bookingId: string) => {
+    const res = await ApiService.cancelBooking(bookingId, currentUser?.email);
+    if (res.success) {
+      showToast(res.message, 'info');
+      if (currentUser?.email) refreshCustomerData(currentUser.email);
+      if (isAdmin) refreshAdminData();
+      return { success: true, message: res.message, refundAmount: res.refundAmount };
     }
-
-    const { refundAmount, retainedAmount, isFullRefund, hoursLeft } = calculateCancellationRefund(booking);
-
-    const paymentStatus: Booking['paymentStatus'] = isFullRefund ? 'refunded_full' : 'refunded_partial';
-
-    const success = StorageService.updateBooking(bookingId, {
-      status: 'cancelled',
-      paymentStatus,
-      cancelledAt: new Date().toISOString(),
-      refundAmount,
-      retainedAmount
-    });
-
-    if (success) {
-      const msg = isFullRefund
-        ? `Hủy lịch hẹn thành công (trước ${hoursLeft.toFixed(1)}h). Đã mô phỏng hoàn 100% cọc: ${refundAmount.toLocaleString('vi-VN')}đ.`
-        : `Hủy lịch hẹn thành công (dưới 24h). Hoàn 50% cọc: ${refundAmount.toLocaleString('vi-VN')}đ, phí giữ chỗ: ${retainedAmount.toLocaleString('vi-VN')}đ.`;
-      showToast(msg, 'info');
-      return { success: true, message: msg, refundAmount };
-    }
-    return { success: false, message: 'Lỗi khi hủy lịch hẹn.' };
+    showToast(res.message, 'error');
+    return { success: false, message: res.message };
   };
 
-  // Orders
-  const createOrderAction = (orderData: {
+  // --- ORDER OPERATIONS (PUBLIC) ---
+  const createOrderAction = async (orderData: {
     customerName: string;
     customerPhone: string;
     customerEmail: string;
@@ -449,195 +468,168 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     paymentMethod: 'cod' | 'card_simulation';
   }) => {
     if (cart.length === 0) {
-      return { success: false, message: 'Giỏ hàng của bạn đang trống.' };
+      return { success: false, message: 'Giỏ hàng đang trống.' };
     }
 
-    // Verify stock availability
-    for (const item of cart) {
-      const product = products.find((p) => p.id === item.productId);
-      if (!product || product.stock < item.quantity) {
-        return {
-          success: false,
-          message: `Sản phẩm "${product?.name || item.productId}" không đủ số lượng tồn kho.`
-        };
-      }
-    }
-
-    // Build order items
-    const orderItems = cart.map((item) => {
-      const product = products.find((p) => p.id === item.productId)!;
-      return {
-        productId: product.id,
-        code: product.code,
-        name: product.name,
-        price: product.price,
-        quantity: item.quantity,
-        imageUrl: product.imageUrl
-      };
-    });
-
-    const subtotal = cartSubtotal;
-    const finalTotal = Math.max(0, subtotal - orderData.discountAmount);
-
-    // Deduct stock
-    for (const item of cart) {
-      StorageService.updateStock(item.productId, item.quantity);
-    }
-
-    // Update coupon usage if used
-    if (orderData.couponCode) {
-      const coupon = coupons.find((c) => c.code.toUpperCase() === orderData.couponCode!.toUpperCase());
-      if (coupon) {
-        const updatedCoupons = coupons.map((c) =>
-          c.id === coupon.id ? { ...c, usedCount: c.usedCount + 1 } : c
-        );
-        StorageService.saveCoupons(updatedCoupons);
-      }
-    }
-
-    const orderId = generateOrderId();
-    const newOrder: Order = {
-      id: orderId,
-      userId: currentUser?.id || 'GUEST',
-      customerName: orderData.customerName,
-      customerPhone: orderData.customerPhone,
-      customerEmail: orderData.customerEmail,
-      shippingAddress: orderData.shippingAddress,
-      items: orderItems,
-      subtotal,
-      discountAmount: orderData.discountAmount,
-      couponCode: orderData.couponCode,
-      totalAmount: finalTotal,
-      paymentMethod: orderData.paymentMethod,
-      paymentStatus: orderData.paymentMethod === 'card_simulation' ? 'paid' : 'pending',
-      status: 'pending',
-      createdAt: new Date().toISOString(),
-      notes: orderData.notes
+    const payload = {
+      ...orderData,
+      items: cart.map((c) => ({ productId: c.productId, quantity: c.quantity }))
     };
 
-    StorageService.addOrder(newOrder);
-    StorageService.clearCart();
-    showToast(`Đặt hàng thành công! Mã đơn: ${orderId}`, 'success');
-    return { success: true, orderId };
+    const res = await ApiService.submitOrder(payload);
+    if (res.success && res.orderId) {
+      clearCart();
+      showToast(`Đặt hàng thành công! Mã đơn hàng: ${res.orderId}`, 'success');
+      if (currentUser?.email) refreshCustomerData(currentUser.email);
+      if (isAdmin) refreshAdminData();
+      return { success: true, orderId: res.orderId };
+    }
+    showToast(res.message || 'Lỗi khi đặt hàng.', 'error');
+    return { success: false, message: res.message };
   };
 
-  // Admin Actions
-  const updateBookingStatus = (bookingId: string, status: Booking['status'], paymentStatus?: Booking['paymentStatus']) => {
-    const updates: Partial<Booking> = { status };
-    if (paymentStatus) {
-      updates.paymentStatus = paymentStatus;
+  // --- ADMIN ACTIONS (Server-side Protected) ---
+  const updateBookingStatus = async (bookingId: string, status: Booking['status'], paymentStatus?: Booking['paymentStatus']) => {
+    const ok = await ApiService.updateBookingStatus(bookingId, status, paymentStatus);
+    if (ok) {
+      setBookings((prev) =>
+        prev.map((b) => (b.id === bookingId ? { ...b, status, ...(paymentStatus ? { paymentStatus } : {}) } : b))
+      );
+      showToast(`Đã cập nhật trạng thái lịch hẹn ${bookingId}.`, 'success');
+    } else {
+      showToast('Lỗi cập nhật lịch hẹn trên máy chủ.', 'error');
     }
-    StorageService.updateBooking(bookingId, updates);
-    showToast(`Đã cập nhật trạng thái lịch hẹn ${bookingId} thành: ${status}`, 'success');
   };
 
-  const updateOrderStatus = (orderId: string, status: Order['status'], paymentStatus?: Order['paymentStatus']) => {
-    const updates: Partial<Order> = { status };
-    if (paymentStatus) {
-      updates.paymentStatus = paymentStatus;
+  const updateOrderStatus = async (orderId: string, status: Order['status'], paymentStatus?: Order['paymentStatus']) => {
+    const ok = await ApiService.updateOrderStatus(orderId, status, paymentStatus);
+    if (ok) {
+      setOrders((prev) =>
+        prev.map((o) => (o.id === orderId ? { ...o, status, ...(paymentStatus ? { paymentStatus } : {}) } : o))
+      );
+      showToast(`Đã cập nhật trạng thái đơn hàng ${orderId}.`, 'success');
+    } else {
+      showToast('Lỗi cập nhật đơn hàng trên máy chủ.', 'error');
     }
+  };
 
-    // If order is cancelled by admin, restock items
-    if (status === 'cancelled') {
-      const order = orders.find((o) => o.id === orderId);
-      if (order && order.status !== 'cancelled') {
-        const allProducts = StorageService.getProducts();
-        for (const item of order.items) {
-          const pIndex = allProducts.findIndex((p) => p.id === item.productId);
-          if (pIndex > -1) {
-            allProducts[pIndex].stock += item.quantity;
-          }
+  const saveService = async (service: ServiceItem) => {
+    const ok = await ApiService.saveService(service);
+    if (ok) {
+      setServices((prev) => {
+        const idx = prev.findIndex((s) => s.id === service.id);
+        if (idx >= 0) {
+          const updated = [...prev];
+          updated[idx] = service;
+          return updated;
         }
-        StorageService.saveProducts(allProducts);
-      }
-    }
-
-    StorageService.updateOrder(orderId, updates);
-    showToast(`Đã cập nhật đơn hàng ${orderId} sang trạng thái: ${status}`, 'success');
-  };
-
-  const saveService = (service: ServiceItem) => {
-    const list = [...services];
-    const index = list.findIndex((s) => s.id === service.id);
-    if (index > -1) {
-      list[index] = service;
+        return [service, ...prev];
+      });
+      showToast(`Đã lưu dịch vụ "${service.name}" thành công!`, 'success');
     } else {
-      list.push(service);
+      showToast('Lỗi lưu dịch vụ trên máy chủ.', 'error');
     }
-    StorageService.saveServices(list);
-    showToast(`Đã lưu dịch vụ "${service.name}"!`, 'success');
   };
 
-  const toggleServiceStatus = (serviceId: string) => {
-    const list = services.map((s) =>
-      s.id === serviceId ? { ...s, status: s.status === 'active' ? ('inactive' as const) : ('active' as const) } : s
-    );
-    StorageService.saveServices(list);
-    showToast('Đã thay đổi trạng thái cung cấp dịch vụ.', 'info');
-  };
-
-  const saveProduct = (product: ProductItem) => {
-    const list = [...products];
-    const index = list.findIndex((p) => p.id === product.id);
-    if (index > -1) {
-      list[index] = product;
-    } else {
-      list.push(product);
+  const toggleServiceStatus = async (serviceId: string) => {
+    const ok = await ApiService.toggleServiceStatus(serviceId);
+    if (ok) {
+      setServices((prev) =>
+        prev.map((s) =>
+          s.id === serviceId ? { ...s, status: s.status === 'active' ? 'inactive' : 'active' } : s
+        )
+      );
+      showToast('Đã thay đổi trạng thái hoạt động của dịch vụ.', 'info');
     }
-    StorageService.saveProducts(list);
-    showToast(`Đã lưu sản phẩm "${product.name}"!`, 'success');
   };
 
-  const updateProductStock = (productId: string, newStock: number) => {
-    const list = products.map((p) => (p.id === productId ? { ...p, stock: Math.max(0, newStock) } : p));
-    StorageService.saveProducts(list);
-    showToast('Đã cập nhật số lượng tồn kho.', 'success');
-  };
-
-  const saveCoupon = (coupon: Coupon) => {
-    const list = [...coupons];
-    const index = list.findIndex((c) => c.id === coupon.id);
-    if (index > -1) {
-      list[index] = coupon;
-    } else {
-      list.push(coupon);
+  const saveProduct = async (product: ProductItem) => {
+    const ok = await ApiService.saveProduct(product);
+    if (ok) {
+      setProducts((prev) => {
+        const idx = prev.findIndex((p) => p.id === product.id);
+        if (idx >= 0) {
+          const updated = [...prev];
+          updated[idx] = product;
+          return updated;
+        }
+        return [product, ...prev];
+      });
+      showToast(`Đã lưu sản phẩm "${product.name}" thành công!`, 'success');
     }
-    StorageService.saveCoupons(list);
-    showToast(`Đã lưu mã ưu đãi "${coupon.code}"!`, 'success');
   };
 
-  const deleteCoupon = (couponId: string) => {
-    const list = coupons.filter((c) => c.id !== couponId);
-    StorageService.saveCoupons(list);
-    showToast('Đã xóa mã ưu đãi.', 'info');
+  const updateProductStock = async (productId: string, newStock: number) => {
+    const ok = await ApiService.updateProductStock(productId, newStock);
+    if (ok) {
+      setProducts((prev) =>
+        prev.map((p) => (p.id === productId ? { ...p, stock: Math.max(0, newStock) } : p))
+      );
+      showToast('Đã cập nhật tồn kho sản phẩm.', 'success');
+    }
   };
 
-  const updateMessageStatus = (messageId: string, status: ContactMessage['status']) => {
-    const list = messages.map((m) => (m.id === messageId ? { ...m, status } : m));
-    StorageService.saveMessages(list);
-    showToast('Đã cập nhật trạng thái tin nhắn.', 'success');
+  const saveCoupon = async (coupon: Coupon) => {
+    const ok = await ApiService.saveCoupon(coupon);
+    if (ok) {
+      setCoupons((prev) => {
+        const idx = prev.findIndex((c) => c.id === coupon.id);
+        if (idx >= 0) {
+          const updated = [...prev];
+          updated[idx] = coupon;
+          return updated;
+        }
+        return [coupon, ...prev];
+      });
+      showToast(`Đã lưu mã ưu đãi "${coupon.code}"!`, 'success');
+    }
   };
 
-  const deleteMessage = (messageId: string) => {
-    const list = messages.filter((m) => m.id !== messageId);
-    StorageService.saveMessages(list);
-    showToast('Đã xóa tin nhắn liên hệ.', 'info');
+  const deleteCoupon = async (couponId: string) => {
+    const ok = await ApiService.deleteCoupon(couponId);
+    if (ok) {
+      setCoupons((prev) => prev.filter((c) => c.id !== couponId));
+      showToast('Đã xóa mã ưu đãi thành công.', 'info');
+    }
   };
 
-  const saveSettings = (newSettings: SpaSettings) => {
-    StorageService.saveSettings(newSettings);
-    showToast('Đã lưu cấu hình spa thành công.', 'success');
+  const updateMessageStatus = async (messageId: string, status: ContactMessage['status']) => {
+    const ok = await ApiService.updateMessageStatus(messageId, status);
+    if (ok) {
+      setMessages((prev) => prev.map((m) => (m.id === messageId ? { ...m, status } : m)));
+      showToast('Đã cập nhật trạng thái tin nhắn.', 'success');
+    }
   };
 
-  const resetDemoData = () => {
-    StorageService.resetAll();
-    showToast('Đã khôi phục toàn bộ dữ liệu mẫu ban đầu!', 'success');
+  const deleteMessage = async (messageId: string) => {
+    const ok = await ApiService.deleteMessage(messageId);
+    if (ok) {
+      setMessages((prev) => prev.filter((m) => m.id !== messageId));
+      showToast('Đã xóa tin nhắn liên hệ.', 'info');
+    }
+  };
+
+  const saveSettings = async (newSettings: SpaSettings) => {
+    const ok = await ApiService.saveSettings(newSettings);
+    if (ok) {
+      setSettings(newSettings);
+      showToast('Đã lưu cấu hình spa thành công.', 'success');
+    }
+  };
+
+  const resetDemoData = async () => {
+    const ok = await ApiService.resetDemoData();
+    if (ok) {
+      await refreshAdminData();
+      showToast('Đã khôi phục toàn bộ dữ liệu máy chủ về ban đầu!', 'success');
+    }
   };
 
   return (
     <AppContext.Provider
       value={{
         currentUser,
+        isAdmin,
         users,
         services,
         products,
@@ -653,6 +645,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         showToast,
         removeToast,
         login,
+        loginAdmin,
+        logoutAdmin,
         register,
         logout,
         updateProfile,
@@ -675,7 +669,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         updateMessageStatus,
         deleteMessage,
         saveSettings,
-        resetDemoData
+        resetDemoData,
+        refreshAdminData
       }}
     >
       {children}

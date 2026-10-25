@@ -138,25 +138,30 @@ export const BookingPage: React.FC = () => {
     setIsProcessing(true);
     setPaymentError(null);
 
-    setTimeout(() => {
-      setIsProcessing(false);
-      const res = createBooking({
-        serviceId: selectedService.id,
-        serviceName: selectedService.name,
-        servicePrice: selectedService.price,
-        date: bookingDate,
-        timeSlot,
-        customerName: customerName.trim(),
-        customerPhone: customerPhone.trim(),
-        customerEmail: customerEmail.trim() || 'khach@annhienspa.demo',
-        notes: notes.trim()
-      });
+    setTimeout(async () => {
+      try {
+        const res = await createBooking({
+          serviceId: selectedService.id,
+          serviceName: selectedService.name,
+          servicePrice: selectedService.price,
+          date: bookingDate,
+          timeSlot,
+          customerName: customerName.trim(),
+          customerPhone: customerPhone.trim(),
+          customerEmail: customerEmail.trim() || 'khach@annhienspa.vn',
+          notes: notes.trim()
+        });
 
-      if (res.success && res.bookingId) {
-        setConfirmedBookingId(res.bookingId);
-        setCurrentStep(6); // Success view
-      } else {
-        setPaymentError(res.message || 'Lỗi khi ghi nhận lịch hẹn.');
+        if (res.success && res.bookingId) {
+          setConfirmedBookingId(res.bookingId);
+          setCurrentStep(6); // Success view
+        } else {
+          setPaymentError(res.message || 'Lỗi khi ghi nhận lịch hẹn.');
+        }
+      } catch (err: any) {
+        setPaymentError(err?.message || 'Lỗi khi ghi nhận lịch hẹn.');
+      } finally {
+        setIsProcessing(false);
       }
     }, 700);
   };

@@ -144,16 +144,6 @@ export const LoginPage: React.FC = () => {
               Đăng ký tài khoản mới
             </Link>
           </div>
-
-          <div className="pt-2 border-t border-[#F0EBE0]">
-            <Link
-              to="/admin/login"
-              className="inline-flex items-center gap-1.5 text-xs text-[#527058] hover:text-[#213526] font-medium"
-            >
-              <ShieldCheck className="w-3.5 h-3.5" />
-              <span>Đăng nhập dành cho Quản Trị Viên (Admin) →</span>
-            </Link>
-          </div>
         </div>
       </div>
     </div>

@@ -12,15 +12,6 @@ import { IMAGES } from '../assets/images';
 
 export const SEED_USERS: User[] = [
   {
-    id: 'USR-ADMIN-01',
-    name: 'Quản Trị Viên An Nhiên',
-    email: 'admin@annhienspa.demo',
-    phone: '0908123456',
-    role: 'admin',
-    createdAt: '2026-01-01T08:00:00Z',
-    status: 'active'
-  },
-  {
     id: 'USR-CUST-01',
     name: 'Nguyễn Thu Trang',
     email: 'khachhang@gmail.com',

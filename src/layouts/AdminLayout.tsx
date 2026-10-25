@@ -37,17 +37,12 @@ export const AdminLayout: React.FC = () => {
           </div>
           <h2 className="font-serif text-2xl font-bold text-[#2A3B2E]">Yêu Cầu Quyền Quản Trị</h2>
           <p className="text-sm text-[#5D6F61] leading-relaxed">
-            Khu vực này chỉ dành riêng cho Ban quản lý An Nhiên Spa. Vui lòng đăng nhập bằng tài khoản quản trị demo để kiểm tra hệ thống.
+            Khu vực này chỉ dành riêng cho Ban quản lý An Nhiên Spa đã được xác thực bảo mật ở máy chủ. Vui lòng đăng nhập bằng tài khoản quản trị viên của bạn.
           </p>
-          <div className="bg-[#FAF9F5] p-3 rounded-lg text-xs text-left border border-[#E5E0D0] space-y-1">
-            <div className="font-semibold text-[#293B2D]">Tài khoản quản trị viên demo:</div>
-            <div>Email: <code className="bg-[#EAE6D8] px-1.5 py-0.5 rounded text-[#1C2C20]">admin@annhienspa.demo</code></div>
-            <div>Mật khẩu: <code className="bg-[#EAE6D8] px-1.5 py-0.5 rounded text-[#1C2C20]">Admin123!</code></div>
-          </div>
           <div className="pt-2 flex flex-col gap-2">
             <button
               onClick={() => navigate('/admin/login')}
-              className="w-full py-2.5 px-4 bg-[#3E5C44] text-white rounded-lg text-sm font-medium hover:bg-[#304835] transition-colors"
+              className="w-full py-2.5 px-4 bg-[#3E5C44] text-white rounded-lg text-sm font-medium hover:bg-[#304835] transition-colors cursor-pointer"
             >
               Đăng nhập Quản trị viên
             </button>

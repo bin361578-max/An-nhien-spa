@@ -66,12 +66,6 @@ export const Footer: React.FC = () => {
               <li>
                 <Link to="/faq" className="hover:text-white transition-colors">Câu hỏi thường gặp & Hướng dẫn</Link>
               </li>
-              <li>
-                <Link to="/admin" className="text-[#8EA793] hover:text-white transition-colors flex items-center gap-1">
-                  <ShieldCheck className="w-3.5 h-3.5" />
-                  <span>Khu vực Quản trị (Admin)</span>
-                </Link>
-              </li>
             </ul>
           </div>
 

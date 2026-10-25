@@ -4,6 +4,7 @@ import { AppProvider } from './context/AppContext';
 
 // Layouts
 import { CustomerLayout } from './layouts/CustomerLayout';
+import { StaffLayout } from './layouts/StaffLayout';
 import { AdminLayout } from './layouts/AdminLayout';
 
 // Customer Pages
@@ -26,6 +27,11 @@ import { MyBookingsPage } from './pages/customer/MyBookingsPage';
 import { MyOrdersPage } from './pages/customer/MyOrdersPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 
+// Staff Pages
+import { StaffDashboardPage } from './pages/staff/StaffDashboardPage';
+import { StaffServicesPage } from './pages/staff/StaffServicesPage';
+import { StaffProductsPage } from './pages/staff/StaffProductsPage';
+
 // Admin Pages
 import { AdminLoginPage } from './pages/admin/AdminLoginPage';
 import { AdminDashboardPage } from './pages/admin/AdminDashboardPage';
@@ -34,6 +40,7 @@ import { AdminServicesPage } from './pages/admin/AdminServicesPage';
 import { AdminProductsPage } from './pages/admin/AdminProductsPage';
 import { AdminOrdersPage } from './pages/admin/AdminOrdersPage';
 import { AdminCustomersPage } from './pages/admin/AdminCustomersPage';
+import { AdminStaffPage } from './pages/admin/AdminStaffPage';
 import { AdminPromotionsPage } from './pages/admin/AdminPromotionsPage';
 import { AdminMessagesPage } from './pages/admin/AdminMessagesPage';
 import { AdminSettingsPage } from './pages/admin/AdminSettingsPage';
@@ -43,7 +50,7 @@ export default function App() {
     <AppProvider>
       <BrowserRouter>
         <Routes>
-          {/* Customer Area */}
+          {/* Customer Area (Public & Customer-authenticated) */}
           <Route path="/" element={<CustomerLayout />}>
             <Route index element={<HomePage />} />
             <Route path="about" element={<AboutPage />} />
@@ -65,10 +72,17 @@ export default function App() {
             <Route path="*" element={<NotFoundPage />} />
           </Route>
 
-          {/* Admin Login Route */}
+          {/* Legacy / Direct Admin Login Redirect */}
           <Route path="/admin/login" element={<AdminLoginPage />} />
 
-          {/* Admin Protected Area */}
+          {/* Staff Workspace Area (Staff & Admin Only) */}
+          <Route path="/staff" element={<StaffLayout />}>
+            <Route index element={<StaffDashboardPage />} />
+            <Route path="services" element={<StaffServicesPage />} />
+            <Route path="products" element={<StaffProductsPage />} />
+          </Route>
+
+          {/* Admin Protected Area (Admin Only) */}
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<AdminDashboardPage />} />
             <Route path="bookings" element={<AdminBookingsPage />} />
@@ -76,6 +90,7 @@ export default function App() {
             <Route path="products" element={<AdminProductsPage />} />
             <Route path="orders" element={<AdminOrdersPage />} />
             <Route path="customers" element={<AdminCustomersPage />} />
+            <Route path="staff" element={<AdminStaffPage />} />
             <Route path="promotions" element={<AdminPromotionsPage />} />
             <Route path="messages" element={<AdminMessagesPage />} />
             <Route path="settings" element={<AdminSettingsPage />} />

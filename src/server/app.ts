@@ -1,12 +1,25 @@
 import express, { Request, Response, NextFunction } from 'express';
-import { authenticateAdmin, verifyAdminToken, AdminTokenPayload } from './auth';
+import {
+  authenticateUser,
+  authenticateAdmin,
+  registerCustomer,
+  verifyAuthToken,
+  verifyAdminToken,
+  TokenPayload,
+  getStaffListAdmin,
+  createStaffAccountByAdmin,
+  updateStaffStatusByAdmin,
+  updateStaffPasswordByAdmin,
+  deleteStaffAccountByAdmin
+} from './auth';
 import { serverDataStore } from './dataStore';
 
-// Extend Express Request to include verified admin
+// Extend Express Request to include verified user & admin
 declare global {
   namespace Express {
     interface Request {
-      admin?: AdminTokenPayload;
+      user?: TokenPayload;
+      admin?: TokenPayload;
     }
   }
 }
@@ -15,31 +28,181 @@ export const app = express();
 
 app.use(express.json());
 
-// Server-side Middleware to require and verify Admin JWT / Session Bearer token
-export function requireAdminAuth(req: Request, res: Response, next: NextFunction): void {
+// ==========================================
+// SERVER-SIDE AUTHENTICATION MIDDLEWARES
+// ==========================================
+
+/**
+ * Validates any authenticated user (Customer, Staff, or Admin)
+ */
+export function requireAuth(req: Request, res: Response, next: NextFunction): void {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     res.status(401).json({
       success: false,
-      error: 'Yêu cầu quyền quản trị viên. Vui lòng đăng nhập tại /admin/login.'
+      error: 'Yêu cầu đăng nhập. Vui lòng đăng nhập tại /login.'
     });
     return;
   }
 
   const token = authHeader.substring(7).trim();
-  const verified = verifyAdminToken(token);
+  const verified = verifyAuthToken(token);
 
   if (!verified) {
     res.status(401).json({
       success: false,
-      error: 'Phiên làm việc của quản trị viên đã hết hạn hoặc không hợp lệ. Vui lòng đăng nhập lại.'
+      error: 'Phiên làm việc đã hết hạn hoặc không hợp lệ. Vui lòng đăng nhập lại.'
     });
     return;
   }
 
+  req.user = verified;
+  if (verified.role === 'admin') {
+    req.admin = verified;
+  }
+  next();
+}
+
+/**
+ * Validates Staff or Admin (for staff workspace operations)
+ */
+export function requireStaffOrAdminAuth(req: Request, res: Response, next: NextFunction): void {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    res.status(401).json({
+      success: false,
+      error: 'Yêu cầu đăng nhập với tài khoản nhân viên hoặc quản trị viên.'
+    });
+    return;
+  }
+
+  const token = authHeader.substring(7).trim();
+  const verified = verifyAuthToken(token);
+
+  if (!verified) {
+    res.status(401).json({
+      success: false,
+      error: 'Phiên làm việc đã hết hạn. Vui lòng đăng nhập lại.'
+    });
+    return;
+  }
+
+  if (verified.role !== 'staff' && verified.role !== 'admin') {
+    res.status(403).json({
+      success: false,
+      error: 'Truy cập bị từ chối. Bạn không có quyền truy cập vào phân hệ nhân viên.'
+    });
+    return;
+  }
+
+  req.user = verified;
+  if (verified.role === 'admin') {
+    req.admin = verified;
+  }
+  next();
+}
+
+/**
+ * Validates Admin ONLY (for sensitive business management & settings)
+ */
+export function requireAdminAuth(req: Request, res: Response, next: NextFunction): void {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    res.status(401).json({
+      success: false,
+      error: 'Yêu cầu quyền quản trị viên. Vui lòng đăng nhập tại /login hoặc /admin/login.'
+    });
+    return;
+  }
+
+  const token = authHeader.substring(7).trim();
+  const verified = verifyAuthToken(token);
+
+  if (!verified || verified.role !== 'admin') {
+    res.status(403).json({
+      success: false,
+      error: 'Truy cập bị từ chối. Khu vực này chỉ dành riêng cho Quản trị viên An Nhiên Spa.'
+    });
+    return;
+  }
+
+  req.user = verified;
   req.admin = verified;
   next();
 }
+
+// ==========================================
+// UNIFIED AUTHENTICATION API ENDPOINTS (/api/auth/*)
+// ==========================================
+
+/**
+ * Unified login endpoint for all three roles: Customer, Staff, Admin
+ */
+app.post('/api/auth/login', (req: Request, res: Response) => {
+  const { email, password, role } = req.body;
+  const clientIp = (req.headers['x-forwarded-for'] as string) || req.socket.remoteAddress || 'unknown';
+
+  const result = authenticateUser(email, password, role, clientIp);
+  if (!result.success) {
+    res.status(401).json(result);
+    return;
+  }
+
+  res.json(result);
+});
+
+/**
+ * Customer Self-Registration (Strictly customer role, server-enforced)
+ */
+app.post('/api/auth/register', (req: Request, res: Response) => {
+  const result = registerCustomer(req.body);
+  if (!result.success) {
+    res.status(400).json(result);
+    return;
+  }
+
+  res.json(result);
+});
+
+/**
+ * Verify and get currently authenticated user profile
+ */
+app.get('/api/auth/me', requireAuth, (req: Request, res: Response) => {
+  res.json({
+    success: true,
+    user: req.user
+  });
+});
+
+/**
+ * Logout
+ */
+app.post('/api/auth/logout', (_req: Request, res: Response) => {
+  res.json({ success: true, message: 'Đăng xuất thành công.' });
+});
+
+// Backward compatibility for existing admin login
+app.post('/api/admin/login', (req: Request, res: Response) => {
+  const { email, password } = req.body;
+  const clientIp = (req.headers['x-forwarded-for'] as string) || req.socket.remoteAddress || 'unknown';
+  const result = authenticateUser(email, password, 'admin', clientIp);
+  if (!result.success) {
+    res.status(401).json(result);
+    return;
+  }
+  res.json(result);
+});
+
+app.get('/api/admin/me', requireAdminAuth, (req: Request, res: Response) => {
+  res.json({
+    success: true,
+    user: req.user
+  });
+});
+
+app.post('/api/admin/logout', requireAdminAuth, (_req: Request, res: Response) => {
+  res.json({ success: true, message: 'Đã đăng xuất phiên làm việc quản trị an toàn.' });
+});
 
 // ==========================================
 // PUBLIC CUSTOMER API ENDPOINTS (No Auth Needed)
@@ -65,7 +228,7 @@ app.get('/api/public/settings', (_req: Request, res: Response) => {
   res.json({ success: true, data: serverDataStore.getPublicSettings() });
 });
 
-// Customer creates booking (returns ONLY booking receipt, no sensitive data)
+// Customer creates booking
 app.post('/api/public/bookings', (req: Request, res: Response) => {
   try {
     const result = serverDataStore.createPublicBooking(req.body);
@@ -148,56 +311,91 @@ app.post('/api/public/booking-cancel', (req: Request, res: Response) => {
 });
 
 // ==========================================
-// ADMIN AUTHENTICATION API ENDPOINTS
+// STAFF WORKSPACE APIs (Require Staff or Admin Auth)
 // ==========================================
 
-// Server-side Admin login
-app.post('/api/admin/login', (req: Request, res: Response) => {
-  const { email, password } = req.body;
-  if (!email || !password) {
-    res.status(400).json({ success: false, error: 'Vui lòng cung cấp email và mật khẩu quản trị.' });
-    return;
-  }
-
-  const authResult = authenticateAdmin(email, password);
-  if (!authResult.success || !authResult.token) {
-    res.status(401).json({
-      success: false,
-      error: authResult.error || 'Email hoặc mật khẩu không chính xác.'
-    });
-    return;
-  }
-
-  res.json({
-    success: true,
-    token: authResult.token,
-    user: {
-      email: email.toLowerCase().trim(),
-      role: 'admin',
-      name: 'Quản Trị Viên An Nhiên'
-    }
-  });
+// Staff retrieves appointments to serve
+app.get('/api/staff/bookings', requireStaffOrAdminAuth, (_req: Request, res: Response) => {
+  res.json({ success: true, data: serverDataStore.getStaffBookings() });
 });
 
-// Check current admin session
-app.get('/api/admin/me', requireAdminAuth, (req: Request, res: Response) => {
-  res.json({
-    success: true,
-    user: {
-      email: req.admin?.email,
-      role: 'admin',
-      name: 'Quản Trị Viên An Nhiên'
-    }
-  });
+// Staff updates appointment status or adds clinical/service notes
+app.patch('/api/staff/bookings/:id', requireStaffOrAdminAuth, (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { status, staffNotes } = req.body;
+  const ok = serverDataStore.updateBookingStatusStaff(id, status, staffNotes);
+  if (!ok) {
+    res.status(404).json({ success: false, error: 'Không tìm thấy lịch hẹn.' });
+    return;
+  }
+  res.json({ success: true, message: 'Cập nhật tiến trình phục vụ thành công.' });
 });
 
-// Admin logout
-app.post('/api/admin/logout', requireAdminAuth, (_req: Request, res: Response) => {
-  res.json({ success: true, message: 'Đã đăng xuất phiên làm việc quản trị an toàn.' });
+// Staff queries catalog for customer consultation
+app.get('/api/staff/services', requireStaffOrAdminAuth, (_req: Request, res: Response) => {
+  res.json({ success: true, data: serverDataStore.getAllServicesAdmin() });
+});
+
+app.get('/api/staff/products', requireStaffOrAdminAuth, (_req: Request, res: Response) => {
+  res.json({ success: true, data: serverDataStore.getAllProductsAdmin() });
 });
 
 // ==========================================
-// PROTECTED ADMIN DATA APIs (Require Bearer Token)
+// ADMIN STAFF MANAGEMENT APIs (Require Admin Auth)
+// ==========================================
+
+// List staff accounts
+app.get('/api/admin/staff', requireAdminAuth, (_req: Request, res: Response) => {
+  res.json({ success: true, data: getStaffListAdmin() });
+});
+
+// Admin creates a new staff account
+app.post('/api/admin/staff', requireAdminAuth, (req: Request, res: Response) => {
+  const result = createStaffAccountByAdmin(req.body);
+  if (!result.success) {
+    res.status(400).json(result);
+    return;
+  }
+  res.json(result);
+});
+
+// Admin toggles staff status (active / blocked)
+app.patch('/api/admin/staff/:id/status', requireAdminAuth, (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { status } = req.body;
+  const ok = updateStaffStatusByAdmin(id, status);
+  if (!ok) {
+    res.status(404).json({ success: false, error: 'Không tìm thấy tài khoản nhân viên.' });
+    return;
+  }
+  res.json({ success: true, message: 'Cập nhật trạng thái nhân viên thành công.' });
+});
+
+// Admin resets staff password
+app.patch('/api/admin/staff/:id/password', requireAdminAuth, (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { password } = req.body;
+  const ok = updateStaffPasswordByAdmin(id, password);
+  if (!ok) {
+    res.status(400).json({ success: false, error: 'Không thể đổi mật khẩu. Mật khẩu phải có ít nhất 8 ký tự.' });
+    return;
+  }
+  res.json({ success: true, message: 'Cập nhật mật khẩu nhân viên thành công.' });
+});
+
+// Admin deletes staff account
+app.delete('/api/admin/staff/:id', requireAdminAuth, (req: Request, res: Response) => {
+  const { id } = req.params;
+  const ok = deleteStaffAccountByAdmin(id);
+  if (!ok) {
+    res.status(404).json({ success: false, error: 'Không tìm thấy tài khoản nhân viên.' });
+    return;
+  }
+  res.json({ success: true, message: 'Đã xóa tài khoản nhân viên thành công.' });
+});
+
+// ==========================================
+// PROTECTED ADMIN DATA APIs (Require Admin Auth)
 // ==========================================
 
 // Overview stats (Aggregates revenue, deposits, orders, bookings)

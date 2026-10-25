@@ -436,6 +436,25 @@ class ServerDataStore {
     };
   }
 
+  // --- STAFF WORKSPACE METHODS ---
+  getStaffBookings(): Booking[] {
+    return [...this.bookings].sort((a, b) => new Date(`${b.date}T${b.timeSlot}`).getTime() - new Date(`${a.date}T${a.timeSlot}`).getTime());
+  }
+
+  updateBookingStatusStaff(
+    bookingId: string,
+    status: Booking['status'],
+    staffNotes?: string
+  ): boolean {
+    const booking = this.bookings.find((b) => b.id === bookingId);
+    if (!booking) return false;
+    booking.status = status;
+    if (staffNotes !== undefined) {
+      booking.staffNotes = staffNotes;
+    }
+    return true;
+  }
+
   private ensureCustomerUser(email: string, name: string, phone: string) {
     const existing = this.users.find((u) => u.email.toLowerCase() === email.toLowerCase());
     if (!existing) {

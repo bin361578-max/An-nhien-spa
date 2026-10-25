@@ -41,7 +41,7 @@ export const AdminLayout: React.FC = () => {
           </p>
           <div className="pt-2 flex flex-col gap-2">
             <button
-              onClick={() => navigate('/admin/login')}
+              onClick={() => navigate('/login?tab=admin')}
               className="w-full py-2.5 px-4 bg-[#3E5C44] text-white rounded-lg text-sm font-medium hover:bg-[#304835] transition-colors cursor-pointer"
             >
               Đăng nhập Quản trị viên
@@ -65,6 +65,7 @@ export const AdminLayout: React.FC = () => {
     { label: 'Quản lý Sản phẩm', path: '/admin/products', icon: ShoppingBag },
     { label: 'Quản lý Đơn hàng', path: '/admin/orders', icon: PackageCheck },
     { label: 'Quản lý Khách hàng', path: '/admin/customers', icon: Users },
+    { label: 'Quản lý Nhân viên', path: '/admin/staff', icon: Users },
     { label: 'Quản lý Ưu đãi', path: '/admin/promotions', icon: Tags },
     { label: 'Tin nhắn Liên hệ', path: '/admin/messages', icon: MessageSquare },
     { label: 'Cài đặt Hệ thống', path: '/admin/settings', icon: Settings }
@@ -72,7 +73,7 @@ export const AdminLayout: React.FC = () => {
 
   const handleLogout = () => {
     logout();
-    navigate('/admin/login');
+    navigate('/login?tab=admin');
   };
 
   const handleConfirmReset = () => {

@@ -1,4 +1,4 @@
-export type UserRole = 'customer' | 'admin';
+export type UserRole = 'customer' | 'staff' | 'admin';
 
 export interface User {
   id: string;
@@ -8,6 +8,7 @@ export interface User {
   role: UserRole;
   createdAt: string;
   status: 'active' | 'blocked';
+  notes?: string;
 }
 
 export type ServiceCategory = 'facial' | 'massage' | 'body' | 'skincare_treatment' | 'intensive';
@@ -63,6 +64,9 @@ export interface Booking {
   refundAmount?: number;
   retainedAmount?: number;
   rescheduleHistory?: RescheduleRecord[];
+  staffNotes?: string;
+  assignedStaffId?: string;
+  assignedStaffName?: string;
 }
 
 export type ProductCategory = 'serum' | 'cream' | 'cleanser' | 'mask' | 'essential_oil' | 'body';

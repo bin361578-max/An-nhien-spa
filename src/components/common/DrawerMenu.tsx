@@ -113,15 +113,44 @@ export const DrawerMenu: React.FC<DrawerMenuProps> = ({ isOpen, onClose }) => {
           {/* User Section */}
           <div>
             <div className="text-[11px] font-semibold uppercase tracking-wider text-[#7A8F7F] px-3 mb-2">
-              Tài khoản khách hàng
+              Tài khoản & Phân quyền
             </div>
             {currentUser ? (
               <div className="space-y-1">
                 <div className="px-3 py-2 mb-2 bg-[#F0EEE4] rounded-lg border border-[#E2DFD3]">
                   <div className="text-xs font-semibold text-[#283C2D] truncate">{currentUser.name}</div>
                   <div className="text-[11px] text-[#697D6E] truncate">{currentUser.email}</div>
-                  <div className="text-[10px] text-[#8C9F90] mt-0.5">Vai trò: Khách hàng thân thiết</div>
+                  <div className="text-[10px] text-[#3E5C44] font-semibold mt-0.5">
+                    {currentUser.role === 'admin'
+                      ? '● Quyền Quản trị viên'
+                      : currentUser.role === 'staff'
+                      ? '● Quyền Nhân viên Spa'
+                      : '● Khách hàng Thân thiết'}
+                  </div>
                 </div>
+
+                {currentUser.role === 'admin' && (
+                  <Link
+                    to="/admin"
+                    onClick={onClose}
+                    className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-semibold bg-[#203124] text-white hover:bg-[#18261B] transition-colors mb-1"
+                  >
+                    <ShieldAlert className="w-4 h-4 text-[#8FA893]" />
+                    <span>Trang Quản Trị Hệ Thống</span>
+                  </Link>
+                )}
+
+                {currentUser.role === 'staff' && (
+                  <Link
+                    to="/staff"
+                    onClick={onClose}
+                    className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-semibold bg-[#2B3F30] text-white hover:bg-[#1F2E23] transition-colors mb-1"
+                  >
+                    <Package className="w-4 h-4 text-[#A8C4AE]" />
+                    <span>Bàn Làm Việc Nhân Viên</span>
+                  </Link>
+                )}
+
                 {userLinks.map((item) => {
                   const Icon = item.icon;
                   const active = isActive(item.path);
@@ -146,7 +175,7 @@ export const DrawerMenu: React.FC<DrawerMenuProps> = ({ isOpen, onClose }) => {
                     logout();
                     onClose();
                   }}
-                  className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-rose-700 hover:bg-rose-50 transition-colors"
+                  className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-rose-700 hover:bg-rose-50 transition-colors cursor-pointer"
                 >
                   <LogOut className="w-4 h-4 text-rose-600" />
                   <span>Đăng xuất</span>

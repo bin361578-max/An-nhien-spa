@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
-import { Menu, ShoppingBag, User as UserIcon, Calendar, ShieldCheck } from 'lucide-react';
+import { Menu, ShoppingBag, User as UserIcon, Calendar, ShieldCheck, Briefcase } from 'lucide-react';
 import { DrawerMenu } from './DrawerMenu';
 
 export const Navbar: React.FC = () => {
@@ -120,12 +120,20 @@ export const Navbar: React.FC = () => {
               {/* User / Profile Link */}
               {currentUser ? (
                 <Link
-                  to={currentUser.role === 'admin' ? '/admin' : '/account'}
+                  to={
+                    currentUser.role === 'admin'
+                      ? '/admin'
+                      : currentUser.role === 'staff'
+                      ? '/staff'
+                      : '/account'
+                  }
                   className="hidden sm:flex items-center gap-1.5 py-1.5 px-2.5 text-xs font-medium text-[#38513E] hover:bg-[#EBE8DC] rounded-lg transition-colors border border-[#DDD9C8]"
                   title={currentUser.name}
                 >
                   {currentUser.role === 'admin' ? (
                     <ShieldCheck className="w-4 h-4 text-[#3C6445]" />
+                  ) : currentUser.role === 'staff' ? (
+                    <Briefcase className="w-4 h-4 text-[#7A612A]" />
                   ) : (
                     <UserIcon className="w-4 h-4 text-[#587960]" />
                   )}

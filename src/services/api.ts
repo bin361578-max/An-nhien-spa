@@ -78,6 +78,16 @@ export const ApiService = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ identifier, email: identifier, password, role })
       });
+      const contentType = res.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) {
+        console.error('Non-JSON response from /api/auth/login:', res.status, res.statusText);
+        return {
+          success: false,
+          error: res.status === 404
+            ? 'Endpoint /api/auth/login chưa sẵn sàng trên máy chủ (Mã 404).'
+            : `Máy chủ trả về mã ${res.status}. Vui lòng thử lại.`
+        };
+      }
       const data = await res.json();
       if (res.ok && data.success && data.token) {
         this.setToken(data.token);
@@ -99,10 +109,17 @@ export const ApiService = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ identifier })
       });
-      const data = await res.json();
+      const contentType = res.headers.get('content-type') || '';
+      if (contentType.includes('application/json')) {
+        const data = await res.json();
+        return {
+          success: true,
+          message: data.message || 'Yêu cầu hỗ trợ khôi phục mật khẩu đã được tiếp nhận.'
+        };
+      }
       return {
         success: true,
-        message: data.message || 'Yêu cầu hỗ trợ khôi phục mật khẩu đã được tiếp nhận.'
+        message: 'Yêu cầu hỗ trợ khôi phục mật khẩu đã được tiếp nhận. Đội ngũ An Nhiên Spa sẽ liên hệ hỗ trợ bạn.'
       };
     } catch {
       return {
@@ -127,6 +144,10 @@ export const ApiService = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email, phone, password })
       });
+      const contentType = res.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) {
+        return { success: false, error: `Máy chủ phản hồi mã ${res.status}. Vui lòng thử lại.` };
+      }
       const data = await res.json();
       if (res.ok && data.success && data.token) {
         this.setToken(data.token);

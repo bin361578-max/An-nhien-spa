@@ -26,7 +26,44 @@ declare global {
 
 export const app = express();
 
+// 1. CORS headers and preflight handling (Essential for Vercel serverless deployments)
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
+  next();
+});
+
+// 2. URL Normalization for Vercel Serverless Function routing
+// On Vercel rewrites (/api/(.*) -> /api/index), req.url might be /api/index, /auth/login, or /api/auth/login.
+app.use((req, res, next) => {
+  const matchedPath = req.headers['x-matched-path'] as string;
+  const originalUrl = req.originalUrl || '';
+
+  if (matchedPath && typeof matchedPath === 'string' && matchedPath.startsWith('/api')) {
+    req.url = matchedPath;
+  } else if (originalUrl && originalUrl.startsWith('/api') && !req.url.startsWith('/api')) {
+    req.url = originalUrl;
+  } else if (!req.url.startsWith('/api') && !req.url.startsWith('/index') && req.url !== '/') {
+    req.url = '/api' + (req.url.startsWith('/') ? req.url : '/' + req.url);
+  }
+  next();
+});
+
 app.use(express.json());
+
+// Healthcheck endpoint for testing Vercel API deployment status
+app.get('/api/health', (_req: Request, res: Response) => {
+  res.json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    service: 'An Nhien Spa Backend API'
+  });
+});
 
 // ==========================================
 // SERVER-SIDE AUTHENTICATION MIDDLEWARES

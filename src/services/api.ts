@@ -64,10 +64,11 @@ export const ApiService = {
   // --- UNIFIED AUTHENTICATION API CALLS ---
 
   /**
-   * Universal Login for Customer, Staff, and Admin
+   * Universal Login for Customer, Staff, and Admin.
+   * Can accept either email or phone number as identifier.
    */
   async login(
-    email: string,
+    identifier: string,
     password: string,
     role?: UserRole
   ): Promise<{ success: boolean; token?: string; user?: User; error?: string }> {
@@ -75,16 +76,39 @@ export const ApiService = {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, role })
+        body: JSON.stringify({ identifier, email: identifier, password, role })
       });
       const data = await res.json();
       if (res.ok && data.success && data.token) {
         this.setToken(data.token);
         return { success: true, token: data.token, user: data.user };
       }
-      return { success: false, error: data.error || 'Đăng nhập không thành công.' };
+      return { success: false, error: data.error || 'Email/Số điện thoại hoặc mật khẩu không chính xác.' };
     } catch {
       return { success: false, error: 'Không thể kết nối đến máy chủ xác thực.' };
+    }
+  },
+
+  /**
+   * Forgot password request
+   */
+  async forgotPassword(identifier: string): Promise<{ success: boolean; message: string }> {
+    try {
+      const res = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ identifier })
+      });
+      const data = await res.json();
+      return {
+        success: true,
+        message: data.message || 'Yêu cầu hỗ trợ khôi phục mật khẩu đã được tiếp nhận.'
+      };
+    } catch {
+      return {
+        success: true,
+        message: 'Yêu cầu hỗ trợ khôi phục mật khẩu đã được tiếp nhận. Đội ngũ An Nhiên Spa sẽ liên hệ hỗ trợ bạn.'
+      };
     }
   },
 

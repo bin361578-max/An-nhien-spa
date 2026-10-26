@@ -36,10 +36,10 @@ export const StaffLayout: React.FC = () => {
           </p>
           <div className="pt-2 flex flex-col gap-2">
             <button
-              onClick={() => navigate('/login?tab=staff')}
+              onClick={() => navigate('/login')}
               className="w-full py-2.5 px-4 bg-[#3E5C44] text-white rounded-xl text-xs font-semibold hover:bg-[#304835] transition-colors cursor-pointer"
             >
-              Đăng nhập Nhân viên
+              Đăng nhập tài khoản
             </button>
             <Link
               to="/"
@@ -66,10 +66,10 @@ export const StaffLayout: React.FC = () => {
           </p>
           <div className="pt-2 flex flex-col gap-2">
             <button
-              onClick={() => navigate('/login?tab=staff')}
+              onClick={() => navigate('/login')}
               className="w-full py-2.5 px-4 bg-[#3E5C44] text-white rounded-xl text-xs font-semibold hover:bg-[#304835] transition-colors cursor-pointer"
             >
-              Chuyển sang Tài khoản Nhân viên
+              Đăng nhập tài khoản nhân viên
             </button>
             <Link
               to="/"

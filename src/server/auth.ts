@@ -141,6 +141,23 @@ if (DEFAULT_ADMIN_EMAIL !== 'admin@annhienspa.vn') {
   });
 }
 
+// If environment specifies a custom staff email, also retain default nhanvien@annhienspa.vn for convenience
+if (DEFAULT_STAFF_EMAIL !== 'nhanvien@annhienspa.vn') {
+  const fallbackStaffCreds = hashPassword('NhanVien@AnNhien2026!');
+  serverUsers.push({
+    id: 'USR-STAFF-02',
+    name: 'Nhân Viên Kỹ Thuật (Dự phòng)',
+    email: 'nhanvien@annhienspa.vn',
+    phone: '0933221199',
+    role: 'staff',
+    passwordHash: fallbackStaffCreds.hash,
+    salt: fallbackStaffCreds.salt,
+    status: 'active',
+    createdAt: '2026-02-01T09:00:00Z',
+    notes: 'Tài khoản nhân viên mặc định'
+  });
+}
+
 // ============================================================================
 // RATE LIMITING PROTECTION (BRUTE-FORCE MITIGATION)
 // ============================================================================
@@ -274,15 +291,19 @@ export function verifyAdminToken(token: string): AdminTokenPayload | null {
 
 /**
  * Authenticate login attempt across all three roles with rate-limiting protection.
+ * Supports login via either Email or Phone number.
+ * Server determines role authoritatively.
  */
 export function authenticateUser(
-  email: string,
+  identifier: string,
   password: string,
   expectedRole?: UserRole,
   clientIp?: string
 ): { success: boolean; token?: string; user?: any; error?: string } {
-  const cleanEmail = (email || '').trim().toLowerCase();
-  const rateLimitKey = `${clientIp || 'client'}_${cleanEmail}`;
+  const cleanInput = (identifier || '').trim();
+  const cleanLower = cleanInput.toLowerCase();
+  const cleanDigits = cleanInput.replace(/[\s.-]/g, '');
+  const rateLimitKey = `${clientIp || 'client'}_${cleanLower || cleanDigits || 'anonymous'}`;
 
   // 1. Check rate limit
   const rateLimitStatus = checkRateLimit(rateLimitKey);
@@ -293,30 +314,27 @@ export function authenticateUser(
     };
   }
 
-  if (!cleanEmail || !password) {
-    return { success: false, error: 'Vui lòng nhập đầy đủ tài khoản/email và mật khẩu.' };
+  if (!cleanInput || !password) {
+    return { success: false, error: 'Vui lòng nhập đầy đủ Email/Số điện thoại và Mật khẩu.' };
   }
 
-  // 2. Find user in server database
-  const user = serverUsers.find((u) => u.email === cleanEmail);
+  // 2. Find user in server database by email OR phone
+  const user = serverUsers.find((u) => {
+    const emailMatches = u.email && u.email.toLowerCase() === cleanLower;
+    const phoneMatches = u.phone && cleanDigits.length >= 8 && u.phone.replace(/[\s.-]/g, '') === cleanDigits;
+    return emailMatches || phoneMatches;
+  });
 
+  // If account does not exist, return generic error (prevents account enumeration)
   if (!user) {
     recordLoginFailure(rateLimitKey);
-    return { success: false, error: 'Tài khoản hoặc mật khẩu không chính xác.' };
+    return { success: false, error: 'Email/Số điện thoại hoặc mật khẩu không chính xác.' };
   }
 
-  // 3. Verify role if specified
+  // 3. Verify role if explicitly requested (optional safeguard)
   if (expectedRole && user.role !== expectedRole) {
     recordLoginFailure(rateLimitKey);
-    if (expectedRole === 'admin' && user.role !== 'admin') {
-      return { success: false, error: 'Tài khoản này không có quyền quản trị viên.' };
-    }
-    if (expectedRole === 'staff' && user.role !== 'staff') {
-      return { success: false, error: 'Tài khoản này không phải là tài khoản nhân viên.' };
-    }
-    if (expectedRole === 'customer' && user.role !== 'customer') {
-      return { success: false, error: 'Vui lòng chọn đúng vai trò tương ứng để đăng nhập.' };
-    }
+    return { success: false, error: 'Email/Số điện thoại hoặc mật khẩu không chính xác.' };
   }
 
   // 4. Check account status
@@ -324,11 +342,11 @@ export function authenticateUser(
     return { success: false, error: 'Tài khoản của bạn đã bị khóa. Vui lòng liên hệ ban quản lý spa.' };
   }
 
-  // 5. Verify password via PBKDF2
+  // 5. Verify password via PBKDF2 timing-safe comparison
   const isValid = verifyPassword(password, user.passwordHash, user.salt);
   if (!isValid) {
     recordLoginFailure(rateLimitKey);
-    return { success: false, error: 'Tài khoản hoặc mật khẩu không chính xác.' };
+    return { success: false, error: 'Email/Số điện thoại hoặc mật khẩu không chính xác.' };
   }
 
   // 6. Reset rate limit on success

@@ -42,8 +42,9 @@ interface AppContextType {
   removeToast: (id: string) => void;
 
   // Unified Multi-Role Authentication
-  login: (email: string, password: string, role?: UserRole) => Promise<{ success: boolean; message?: string; role?: UserRole }>;
+  login: (identifier: string, password: string, role?: UserRole) => Promise<{ success: boolean; message?: string; role?: UserRole }>;
   register: (name: string, email: string, phone: string, password: string) => Promise<{ success: boolean; message?: string }>;
+  forgotPasswordAction: (identifier: string) => Promise<{ success: boolean; message: string }>;
   logout: () => Promise<void>;
   updateProfile: (name: string, phone: string, email: string) => { success: boolean; message?: string };
 
@@ -282,12 +283,12 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   // --- UNIFIED MULTI-ROLE LOGIN ---
   const login = async (
-    email: string,
+    identifier: string,
     password: string,
     role?: UserRole
   ): Promise<{ success: boolean; message?: string; role?: UserRole }> => {
     try {
-      const res = await ApiService.login(email, password, role);
+      const res = await ApiService.login(identifier, password, role);
       if (res.success && res.token && res.user) {
         const authedUser: User = {
           id: res.user.id,
@@ -321,10 +322,14 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
         return { success: true, role: authedUser.role };
       }
-      return { success: false, message: res.error || 'Email hoặc mật khẩu không chính xác.' };
+      return { success: false, message: res.error || 'Email/Số điện thoại hoặc mật khẩu không chính xác.' };
     } catch {
       return { success: false, message: 'Không thể kết nối đến máy chủ xác thực.' };
     }
+  };
+
+  const forgotPasswordAction = async (identifier: string): Promise<{ success: boolean; message: string }> => {
+    return await ApiService.forgotPassword(identifier);
   };
 
   // --- CUSTOMER REGISTRATION ---
@@ -735,6 +740,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         removeToast,
         login,
         register,
+        forgotPasswordAction,
         logout,
         updateProfile,
         loginAdmin,

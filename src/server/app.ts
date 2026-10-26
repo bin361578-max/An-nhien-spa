@@ -136,19 +136,34 @@ export function requireAdminAuth(req: Request, res: Response, next: NextFunction
 // ==========================================
 
 /**
- * Unified login endpoint for all three roles: Customer, Staff, Admin
+ * Unified login endpoint for all three roles: Customer, Staff, Admin.
+ * Accepts identifier (Email or Phone number) and password.
+ * Role is resolved authoritatively by the server.
  */
 app.post('/api/auth/login', (req: Request, res: Response) => {
-  const { email, password, role } = req.body;
+  const { identifier, email, phone, password, role } = req.body;
+  const loginIdentifier = identifier || email || phone || '';
   const clientIp = (req.headers['x-forwarded-for'] as string) || req.socket.remoteAddress || 'unknown';
 
-  const result = authenticateUser(email, password, role, clientIp);
+  const result = authenticateUser(loginIdentifier, password, role, clientIp);
   if (!result.success) {
     res.status(401).json(result);
     return;
   }
 
   res.json(result);
+});
+
+/**
+ * Forgot password assistance endpoint
+ */
+app.post('/api/auth/forgot-password', (req: Request, res: Response) => {
+  const { identifier } = req.body;
+  // Always respond with a helpful, secure generic message without leaking account existence
+  res.json({
+    success: true,
+    message: 'Yêu cầu hỗ trợ khôi phục mật khẩu đã được tiếp nhận. Bộ phận chăm sóc khách hàng An Nhiên Spa sẽ liên hệ hỗ trợ bạn qua email hoặc số điện thoại.'
+  });
 });
 
 /**

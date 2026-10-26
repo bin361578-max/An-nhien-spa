@@ -41,7 +41,7 @@ export const AdminLayout: React.FC = () => {
           </p>
           <div className="pt-2 flex flex-col gap-2">
             <button
-              onClick={() => navigate('/login?tab=admin')}
+              onClick={() => navigate('/login')}
               className="w-full py-2.5 px-4 bg-[#3E5C44] text-white rounded-lg text-sm font-medium hover:bg-[#304835] transition-colors cursor-pointer"
             >
               Đăng nhập Quản trị viên
@@ -73,7 +73,7 @@ export const AdminLayout: React.FC = () => {
 
   const handleLogout = () => {
     logout();
-    navigate('/login?tab=admin');
+    navigate('/login');
   };
 
   const handleConfirmReset = () => {

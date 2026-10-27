@@ -39,17 +39,11 @@ app.use((req, res, next) => {
 });
 
 // 2. URL Normalization for Vercel Serverless Function routing
-// On Vercel rewrites (/api/(.*) -> /api/index), req.url might be /api/index, /auth/login, or /api/auth/login.
+// On Vercel rewrites (/api/(.*) -> /api/index), req.url might be /api/index or /api.
 app.use((req, res, next) => {
   const matchedPath = req.headers['x-matched-path'] as string;
-  const originalUrl = req.originalUrl || '';
-
-  if (matchedPath && typeof matchedPath === 'string' && matchedPath.startsWith('/api')) {
+  if ((req.url === '/api/index' || req.url === '/api') && matchedPath && matchedPath.startsWith('/api')) {
     req.url = matchedPath;
-  } else if (originalUrl && originalUrl.startsWith('/api') && !req.url.startsWith('/api')) {
-    req.url = originalUrl;
-  } else if (!req.url.startsWith('/api') && !req.url.startsWith('/index') && req.url !== '/') {
-    req.url = '/api' + (req.url.startsWith('/') ? req.url : '/' + req.url);
   }
   next();
 });
@@ -261,22 +255,22 @@ app.post('/api/admin/logout', requireAdminAuth, (_req: Request, res: Response) =
 // ==========================================
 
 // Public services catalog
-app.get('/api/public/services', (_req: Request, res: Response) => {
+app.get(['/api/public/services', '/api/services'], (_req: Request, res: Response) => {
   res.json({ success: true, data: serverDataStore.getPublicServices() });
 });
 
 // Public products catalog
-app.get('/api/public/products', (_req: Request, res: Response) => {
+app.get(['/api/public/products', '/api/products'], (_req: Request, res: Response) => {
   res.json({ success: true, data: serverDataStore.getPublicProducts() });
 });
 
 // Public coupons list
-app.get('/api/public/coupons', (_req: Request, res: Response) => {
+app.get(['/api/public/coupons', '/api/coupons'], (_req: Request, res: Response) => {
   res.json({ success: true, data: serverDataStore.getPublicCoupons() });
 });
 
 // Public spa settings
-app.get('/api/public/settings', (_req: Request, res: Response) => {
+app.get(['/api/public/settings', '/api/settings'], (_req: Request, res: Response) => {
   res.json({ success: true, data: serverDataStore.getPublicSettings() });
 });
 

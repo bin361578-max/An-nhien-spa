@@ -1,8 +1,9 @@
 import type { Request, Response } from 'express';
-import { app } from '../src/server/app';
+import { app } from './app';
 
-// Vercel Serverless Function catch-all entry point for /api/*
+// Vercel Serverless Function entry point
 export default function handler(req: Request, res: Response) {
+  // If Vercel rewrote /api/(.*) to /api/index, restore the matched path from header
   const matchedPath = req.headers['x-matched-path'];
   if (typeof matchedPath === 'string' && matchedPath.startsWith('/api')) {
     req.url = matchedPath;

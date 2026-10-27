@@ -68,94 +68,158 @@ export function verifyPassword(password: string, storedHash: string, salt: strin
 // IN-MEMORY USER STORE (SERVER-AUTHORITATIVE)
 // ============================================================================
 
-const initialAdminCreds = hashPassword(DEFAULT_ADMIN_PASSWORD);
-const initialStaffCreds = hashPassword(DEFAULT_STAFF_PASSWORD);
-const initialCustCreds = hashPassword(DEFAULT_CUSTOMER_PASSWORD);
+// Built-in Administrator accounts (guaranteed to work across AI Studio and Vercel)
+const adminCreds1 = hashPassword('amin_2454');
+const adminCreds2 = hashPassword('AnNhien@Admin2026Secure!');
+
+// Built-in Staff accounts
+const staffCreds1 = hashPassword('nhanvien123');
+const staffCreds2 = hashPassword('NhanVien@AnNhien2026!');
+
+// Built-in Customer accounts
+const custCreds = hashPassword('KhachHang@2026!');
 
 const serverUsers: StoredUser[] = [
-  // Primary Administrator
+  // 1. Primary Administrator
   {
     id: 'USR-ADMIN-01',
     name: 'Quản Trị Viên An Nhiên',
-    email: DEFAULT_ADMIN_EMAIL,
+    email: 'nguyenmin666@gmail.com',
     phone: '0901234567',
     role: 'admin',
-    passwordHash: initialAdminCreds.hash,
-    salt: initialAdminCreds.salt,
+    passwordHash: adminCreds1.hash,
+    salt: adminCreds1.salt,
     status: 'active',
     createdAt: '2026-01-01T08:00:00Z',
-    notes: 'Tài khoản quản trị hệ thống'
+    notes: 'Tài khoản quản trị viên chính'
   },
-  // Initial Staff Member
+  // 2. Secondary/System Administrator
+  {
+    id: 'USR-ADMIN-02',
+    name: 'Quản Trị Viên Hệ Thống',
+    email: 'admin@annhienspa.vn',
+    phone: '0901234568',
+    role: 'admin',
+    passwordHash: adminCreds2.hash,
+    salt: adminCreds2.salt,
+    status: 'active',
+    createdAt: '2026-01-01T08:00:00Z',
+    notes: 'Tài khoản quản trị viên mặc định hệ thống'
+  },
+  // 3. Primary Staff Member
   {
     id: 'USR-STAFF-01',
-    name: 'Nguyễn Mai Lan (Kỹ thuật viên)',
-    email: DEFAULT_STAFF_EMAIL,
+    name: 'Nhân Viên Điều Phối',
+    email: 'nhanvien12@gmail.com',
     phone: '0933221100',
     role: 'staff',
-    passwordHash: initialStaffCreds.hash,
-    salt: initialStaffCreds.salt,
+    passwordHash: staffCreds1.hash,
+    salt: staffCreds1.salt,
+    status: 'active',
+    createdAt: '2026-02-01T09:00:00Z',
+    notes: 'Kỹ thuật viên & điều phối viên spa'
+  },
+  // 4. Secondary Staff Member
+  {
+    id: 'USR-STAFF-02',
+    name: 'Nguyễn Mai Lan (Kỹ thuật viên)',
+    email: 'nhanvien@annhienspa.vn',
+    phone: '0933221199',
+    role: 'staff',
+    passwordHash: staffCreds2.hash,
+    salt: staffCreds2.salt,
     status: 'active',
     createdAt: '2026-02-01T09:00:00Z',
     notes: 'Kỹ thuật viên chính - Chăm sóc da mặt và trị liệu thảo mộc'
   },
-  // Initial Customer Member
+  // 5. Customer Seed 1
   {
     id: 'USR-CUST-01',
     name: 'Nguyễn Thu Trang',
     email: 'khachhang@gmail.com',
     phone: '0912345678',
     role: 'customer',
-    passwordHash: initialCustCreds.hash,
-    salt: initialCustCreds.salt,
+    passwordHash: custCreds.hash,
+    salt: custCreds.salt,
     status: 'active',
     createdAt: '2026-02-15T10:30:00Z'
   },
+  // 6. Customer Seed 2
   {
     id: 'USR-CUST-02',
     name: 'Trần Lan Anh',
     email: 'lananh@gmail.com',
     phone: '0987654321',
     role: 'customer',
-    passwordHash: initialCustCreds.hash,
-    salt: initialCustCreds.salt,
+    passwordHash: custCreds.hash,
+    salt: custCreds.salt,
     status: 'active',
     createdAt: '2026-03-01T14:20:00Z'
+  },
+  // 7. Customer Seed 3 (Owner personal account)
+  {
+    id: 'USR-CUST-03',
+    name: 'Khách Hàng An Nhiên',
+    email: 'bin361578@gmail.com',
+    phone: '0912345679',
+    role: 'customer',
+    passwordHash: custCreds.hash,
+    salt: custCreds.salt,
+    status: 'active',
+    createdAt: '2026-03-10T12:00:00Z'
   }
 ];
 
-// If environment specifies a custom admin email, also retain default admin@annhienspa.vn for convenience
-if (DEFAULT_ADMIN_EMAIL !== 'admin@annhienspa.vn') {
-  const fallbackAdminCreds = hashPassword('AnNhien@Admin2026Secure!');
-  serverUsers.push({
-    id: 'USR-ADMIN-02',
-    name: 'Quản Trị Viên (Dự phòng)',
-    email: 'admin@annhienspa.vn',
-    phone: '0901234567',
-    role: 'admin',
-    passwordHash: fallbackAdminCreds.hash,
-    salt: fallbackAdminCreds.salt,
-    status: 'active',
-    createdAt: '2026-01-01T08:00:00Z',
-    notes: 'Tài khoản quản trị viên mặc định'
-  });
+// If custom ADMIN_EMAIL is set via environment variable, also ensure it's registered
+if (process.env.ADMIN_EMAIL) {
+  const customAdminEmail = process.env.ADMIN_EMAIL.toLowerCase().trim();
+  const existing = serverUsers.find((u) => u.email === customAdminEmail);
+  if (existing) {
+    if (process.env.ADMIN_PASSWORD) {
+      const { hash, salt } = hashPassword(process.env.ADMIN_PASSWORD);
+      existing.passwordHash = hash;
+      existing.salt = salt;
+    }
+  } else {
+    const { hash, salt } = hashPassword(process.env.ADMIN_PASSWORD || 'AnNhien@Admin2026Secure!');
+    serverUsers.push({
+      id: 'USR-ADMIN-ENV',
+      name: 'Quản Trị Viên (Cấu hình Vercel)',
+      email: customAdminEmail,
+      phone: '0909998888',
+      role: 'admin',
+      passwordHash: hash,
+      salt,
+      status: 'active',
+      createdAt: new Date().toISOString()
+    });
+  }
 }
 
-// If environment specifies a custom staff email, also retain default nhanvien@annhienspa.vn for convenience
-if (DEFAULT_STAFF_EMAIL !== 'nhanvien@annhienspa.vn') {
-  const fallbackStaffCreds = hashPassword('NhanVien@AnNhien2026!');
-  serverUsers.push({
-    id: 'USR-STAFF-02',
-    name: 'Nhân Viên Kỹ Thuật (Dự phòng)',
-    email: 'nhanvien@annhienspa.vn',
-    phone: '0933221199',
-    role: 'staff',
-    passwordHash: fallbackStaffCreds.hash,
-    salt: fallbackStaffCreds.salt,
-    status: 'active',
-    createdAt: '2026-02-01T09:00:00Z',
-    notes: 'Tài khoản nhân viên mặc định'
-  });
+// If custom STAFF_EMAIL is set via environment variable, also ensure it's registered
+if (process.env.STAFF_EMAIL) {
+  const customStaffEmail = process.env.STAFF_EMAIL.toLowerCase().trim();
+  const existing = serverUsers.find((u) => u.email === customStaffEmail);
+  if (existing) {
+    if (process.env.STAFF_PASSWORD) {
+      const { hash, salt } = hashPassword(process.env.STAFF_PASSWORD);
+      existing.passwordHash = hash;
+      existing.salt = salt;
+    }
+  } else {
+    const { hash, salt } = hashPassword(process.env.STAFF_PASSWORD || 'NhanVien@AnNhien2026!');
+    serverUsers.push({
+      id: 'USR-STAFF-ENV',
+      name: 'Nhân Viên (Cấu hình Vercel)',
+      email: customStaffEmail,
+      phone: '0933998877',
+      role: 'staff',
+      passwordHash: hash,
+      salt,
+      status: 'active',
+      createdAt: new Date().toISOString()
+    });
+  }
 }
 
 // ============================================================================
@@ -302,8 +366,11 @@ export function authenticateUser(
 ): { success: boolean; token?: string; user?: any; error?: string } {
   const cleanInput = (identifier || '').trim();
   const cleanLower = cleanInput.toLowerCase();
-  const cleanDigits = cleanInput.replace(/[\s.-]/g, '');
-  const rateLimitKey = `${clientIp || 'client'}_${cleanLower || cleanDigits || 'anonymous'}`;
+  const rawDigits = cleanInput.replace(/\D/g, '');
+  const cleanPhone = rawDigits.startsWith('84') && rawDigits.length >= 10
+    ? '0' + rawDigits.slice(2)
+    : rawDigits;
+  const rateLimitKey = `${clientIp || 'client'}_${cleanLower || cleanPhone || 'anonymous'}`;
 
   // 1. Check rate limit
   const rateLimitStatus = checkRateLimit(rateLimitKey);
@@ -318,10 +385,14 @@ export function authenticateUser(
     return { success: false, error: 'Vui lòng nhập đầy đủ Email/Số điện thoại và Mật khẩu.' };
   }
 
-  // 2. Find user in server database by email OR phone
+  // 2. Find user in server database by email OR phone (supports both local 09... and +84... formats)
   const user = serverUsers.find((u) => {
-    const emailMatches = u.email && u.email.toLowerCase() === cleanLower;
-    const phoneMatches = u.phone && cleanDigits.length >= 8 && u.phone.replace(/[\s.-]/g, '') === cleanDigits;
+    const emailMatches = Boolean(u.email && u.email.toLowerCase() === cleanLower);
+    const userRawPhone = u.phone ? u.phone.replace(/\D/g, '') : '';
+    const userNormalizedPhone = userRawPhone.startsWith('84') && userRawPhone.length >= 10
+      ? '0' + userRawPhone.slice(2)
+      : userRawPhone;
+    const phoneMatches = Boolean(cleanPhone.length >= 8 && userNormalizedPhone === cleanPhone);
     return emailMatches || phoneMatches;
   });
 

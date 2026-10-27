@@ -172,17 +172,30 @@ export function requireAdminAuth(req: Request, res: Response, next: NextFunction
  * Role is resolved authoritatively by the server.
  */
 app.post('/api/auth/login', (req: Request, res: Response) => {
-  const { identifier, email, phone, password, role } = req.body;
-  const loginIdentifier = identifier || email || phone || '';
-  const clientIp = (req.headers['x-forwarded-for'] as string) || req.socket.remoteAddress || 'unknown';
+  try {
+    const { identifier, email, phone, password, role } = req.body || {};
+    const loginIdentifier = identifier || email || phone || '';
+    const clientIp = (req.headers['x-forwarded-for'] as string) || req.socket.remoteAddress || 'unknown';
 
-  const result = authenticateUser(loginIdentifier, password, role, clientIp);
-  if (!result.success) {
-    res.status(401).json(result);
-    return;
+    const result = authenticateUser(loginIdentifier, password, role, clientIp);
+    if (!result.success) {
+      const statusCode = result.error?.includes('tạm khóa')
+        ? 429
+        : result.error?.includes('đã bị khóa')
+        ? 403
+        : 401;
+      res.status(statusCode).json(result);
+      return;
+    }
+
+    res.json(result);
+  } catch (err: any) {
+    console.error('Error in /api/auth/login:', err);
+    res.status(500).json({
+      success: false,
+      error: 'Lỗi máy chủ nội bộ. Không thể xử lý yêu cầu xác thực vào lúc này.'
+    });
   }
-
-  res.json(result);
 });
 
 /**

@@ -93,9 +93,38 @@ export const ApiService = {
         this.setToken(data.token);
         return { success: true, token: data.token, user: data.user };
       }
-      return { success: false, error: data.error || 'Email/Số điện thoại hoặc mật khẩu không chính xác.' };
+
+      // Explicitly distinguish between different HTTP error statuses
+      if (res.status === 500) {
+        return {
+          success: false,
+          error: (typeof data?.error === 'string' && data.error)
+            ? data.error
+            : 'Lỗi máy chủ nội bộ (Mã 500). Vui lòng thử lại sau hoặc liên hệ ban quản lý spa.'
+        };
+      }
+      if (res.status === 403) {
+        return {
+          success: false,
+          error: data?.error || 'Tài khoản của bạn đã bị khóa. Vui lòng liên hệ ban quản lý spa.'
+        };
+      }
+      if (res.status === 429) {
+        return {
+          success: false,
+          error: data?.error || 'Thiết bị đã thử đăng nhập sai quá nhiều lần. Vui lòng thử lại sau ít phút.'
+        };
+      }
+
+      // 401: Invalid credentials
+      return {
+        success: false,
+        error: (typeof data?.error === 'string' && data.error)
+          ? data.error
+          : 'Email/Số điện thoại hoặc mật khẩu không chính xác.'
+      };
     } catch {
-      return { success: false, error: 'Không thể kết nối đến máy chủ xác thực.' };
+      return { success: false, error: 'Không thể kết nối đến máy chủ xác thực. Vui lòng kiểm tra đường truyền mạng.' };
     }
   },
 
